@@ -1,0 +1,281 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import LoginPage from "../pages/auth/LoginPage";
+import DashboardLayout from "../layouts/DashboardLayout";
+import Voyages from "../pages/Voyages";
+import ProtectedRoute from "../components/ProtectedRoute";
+import CompletedVoyages from "../pages/CompletedVoyages";
+import TrackProduct from "../pages/TrackProduct";
+import AllProductQr from "../pages/AllProductQr";
+import EmployeeList from "../pages/EmployeeList";
+import AllBills from "../pages/AllBills";
+import CustomerCodeCreation from "../pages/CustomerCodeCreation";
+import VoyageByCompany from "../pages/VoyageByCompany";
+import CompletedVoyageByCompany from "../pages/CompletedVoyageByCompany";
+import CompletedVoyageDetails from "../pages/CompletedVoyageDetails";
+import VoyageDetails from "../pages/VoyageDetails";
+import Branches from "../pages/superadmin/Branches";
+import ClientInfo from "../pages/ClientInfo";
+import Shipment from "../pages/ship-cargo/Shipment";
+import BranchDetails from "../pages/superadmin/BranchDetails";
+import Packages from "../pages/Packages";
+import PackageProducts from "../pages/PackageProducts";
+import ContactUs from "../pages/ContactUs";
+import Containers from "../pages/ship-cargo/Containers";
+import Lines from "../pages/ship-cargo/Lines";
+import ContainerCompanies from "../pages/ship-cargo/ContainerCompanies";
+import CompanyDetails from "../pages/ship-cargo/CompanyDetails";
+import CompanyData from "../pages/ship-cargo/CompanyData";
+import CompletedSeaVoyage from "../pages/ship-cargo/CompletedSeaVoyage";
+import ReceivedData from "../pages/ship-cargo/ReceivedData";
+import ProductType from "../pages/ship-cargo/ProductType";
+import AppImages from "../pages/superadmin/AppImages";
+import UserActivities from "../pages/superadmin/UserActivities";
+
+const router = createBrowserRouter([
+  {
+    path: "/contact",
+    element: <ContactUs />,
+  },
+  {
+    path: "/",
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <ProtectedRoute redirectBasedOnRole={true} />,
+      },
+      {
+        path: "voyage",
+        element: (
+          <ProtectedRoute
+            allowedRoles={["air_cargo_admin", "ship_cargo_admin"]}
+          >
+            <Voyages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "sea-voyage",
+        element: (
+          <ProtectedRoute allowedRoles={["ship_cargo_admin"]}>
+            <Shipment />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "completed-sea-voyage",
+        element: (
+          <ProtectedRoute allowedRoles={["ship_cargo_admin"]}>
+            <CompletedSeaVoyage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "received-data",
+        element: (
+          <ProtectedRoute allowedRoles={["ship_cargo_admin"]}>
+            <ReceivedData />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "product-type",
+        element: (
+          <ProtectedRoute allowedRoles={["ship_cargo_admin"]}>
+            <ProductType />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "completed",
+        element: (
+          <ProtectedRoute>
+            <CompletedVoyages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "trackproduct",
+        element: (
+          <ProtectedRoute>
+            <TrackProduct />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "allproduct",
+        element: (
+          <ProtectedRoute>
+            <AllProductQr />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "employee",
+        element: (
+          <ProtectedRoute>
+            <EmployeeList />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "allbill",
+        element: (
+          <ProtectedRoute>
+            <AllBills />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "customercode",
+        element: (
+          <ProtectedRoute>
+            <CustomerCodeCreation />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "voyage/:voyageId/companies",
+        element: (
+          <ProtectedRoute>
+            <VoyageByCompany />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "completed/:voyageId/companies",
+        element: (
+          <ProtectedRoute>
+            <CompletedVoyageByCompany />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "completed/:voyageId/companies/:companyCode",
+        element: (
+          <ProtectedRoute>
+            <CompletedVoyageDetails />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "voyage/:voyageId/companies/:companyCode",
+        element: (
+          <ProtectedRoute>
+            <VoyageDetails />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "branches",
+        element: (
+          <ProtectedRoute allowedRoles={["superadmin"]}>
+            <Branches />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "app-images",
+        element: (
+          <ProtectedRoute allowedRoles={["superadmin"]}>
+            <AppImages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "user-activities",
+        element: (
+          <ProtectedRoute allowedRoles={["superadmin"]}>
+            <UserActivities />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "clients",
+        element: (
+          <ProtectedRoute>
+            <ClientInfo />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "branches/:branchId",
+        element: (
+          <ProtectedRoute>
+            <BranchDetails />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "packages",
+        element: (
+          <ProtectedRoute>
+            <Packages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "packages/:packageId/package-details",
+        element: (
+          <ProtectedRoute>
+            <PackageProducts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "sea-voyage/:seaVoyageId/container/:lineId/:status?",
+        element: (
+          <ProtectedRoute>
+            <Containers />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "sea-voyage/:seaContainerId/company-details/:status?",
+        element: (
+          <ProtectedRoute>
+            <CompanyDetails />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "sea-voyage/company/:companyCode/details/:seaContainerId/:status?",
+        element: (
+          <ProtectedRoute>
+            <CompanyData />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "lines",
+        element: (
+          <ProtectedRoute>
+            <Lines />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "lines/:lineId/container-company",
+        element: (
+          <ProtectedRoute>
+            <ContainerCompanies />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+]);
+
+export default router;
