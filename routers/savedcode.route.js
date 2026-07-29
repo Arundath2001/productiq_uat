@@ -1,0 +1,21 @@
+import express from "express";
+import { protectRoute } from "../middleware/auth.middleware.js";
+import { deleteSavedCode, getCompanyCode, getSavedProductCode, getSavedProductCodeTotal, getSavedProductCodeV2, saveProductCode } from "../controllers/savedcode.controller.js";
+
+const router = express.Router();
+
+router.post("/", protectRoute, saveProductCode);
+
+router.get("/", getSavedProductCode);
+
+router.delete("/:codeId", protectRoute, deleteSavedCode);
+
+//v2 codes
+
+router.get("/V2", protectRoute, getSavedProductCodeV2);
+
+router.get("/V2/total-products", protectRoute, getSavedProductCodeTotal);
+
+router.get('/company-code/:productCode', getCompanyCode);
+
+export default router;

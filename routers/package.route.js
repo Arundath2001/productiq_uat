@@ -1,0 +1,18 @@
+import express from "express";
+import { createPackage, deletePackage, getPackageDetails, getPackagesByGoniAndVoyage, packageDetailsByVoyage, packageDetailsByVoyageAndCompany, removeProductFromPackage, updatePackageWeight, uploadToPackage } from "../controllers/package.controller.js";
+import { protectRoute } from '../middleware/auth.middleware.js';
+
+
+const router = express.Router();
+
+router.post('/package-details', protectRoute, getPackagesByGoniAndVoyage);
+router.post("/create", protectRoute, createPackage);
+router.post("/:packageId/upload", protectRoute, uploadToPackage);
+router.get("/:packageId/get-package", protectRoute, getPackageDetails);
+router.get("/:companyId/voyage/:voyageId", protectRoute, packageDetailsByVoyageAndCompany);
+router.delete("/:packageId/remove-product", protectRoute, removeProductFromPackage);
+router.put('/:packageId/weight', protectRoute, updatePackageWeight);
+router.get("/voyage/:voyageId", packageDetailsByVoyage);
+router.delete("/", protectRoute, deletePackage);
+
+export default router;

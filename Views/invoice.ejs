@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>CARGO MANIFEST</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        color: #333;
+        font-size: 16px;
+      }
+
+      .top-head {
+        color: #000000;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .red-text {
+        color: #ff0000;
+        font-weight: bold;
+        display: block;
+        margin-top: 2px;
+        text-transform: uppercase;
+      }
+
+      .label-text {
+        color: #000000;
+        font-weight: bold;
+        display: block;
+        text-transform: uppercase;
+      }
+
+      .table-layout {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .table-layout th {
+        text-align: left;
+        font-weight: bolder;
+        padding: 8px 2px;
+      }
+
+      .table-layout td {
+        text-align: left;
+        font-weight: bolder;
+        padding: 8px 2px;
+      }
+
+      .col-sh {
+        width: 40%;
+      }
+      .col-bl {
+        width: 14%;
+      }
+      .col-cn {
+        width: 12%;
+      }
+      .col-pk {
+        width: 8%;
+      }
+      .col-ds {
+        width: 16%;
+      }
+      .col-wt {
+        width: 5%;
+      }
+      .col-hs {
+        width: 5%;
+      }
+
+      .table-head {
+        border-bottom: 2px solid #000000;
+        border-top: 2px solid #000000;
+      }
+
+      .row-content {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 20px;
+      }
+
+      .company-text {
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+
+      .bold-text {
+        font-weight: bold;
+      }
+
+      .footer-row {
+        border-bottom: 2px solid #000000;
+        font-weight: bold;
+      }
+
+      .footer-row td {
+        padding-top: 10px;
+      }
+
+      .bill-separator {
+        border: none;
+        border-top: 3px solid #000;
+        margin: 50px 0;
+      }
+
+      .bill-block {
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+
+    <p class="top-head">CARGO MANIFEST</p>
+
+    <div>
+      <div>
+        <p class="company-text">
+          ASWAQ FORWARDER SEA<br />
+          SHIPPING LINES AGENTS CO. L.L.C
+        </p>
+      </div>
+
+      <div class="row-content">
+        <div class="col-sh">
+          <p class="label-text">Vessel Name</p>
+          <p class="red-text"><%= bills[0].vessel %></p>
+        </div>
+        <div>
+          <p class="label-text">Voyage</p>
+          <p class="red-text"><%= bills[0].voyNo %></p>
+        </div>
+      </div>
+
+      <div class="row-content">
+        <div class="col-sh">
+          <p class="label-text">Master BL:</p>
+          <p class="red-text">DB659162</p>
+        </div>
+        <div class="col-bl">
+          <p class="label-text">PORT OF LOADING</p>
+          <p class="red-text"><%= bills[0].portLoading %></p>
+        </div>
+        <div>
+          <p class="label-text">DESTINATION</p>
+          <p class="red-text"><%= bills[0].portDischarge %></p>
+        </div>
+      </div>
+    </div>
+
+    <table class="table-layout">
+      <thead class="table-head">
+        <tr>
+          <th class="col-sh">
+            ADDRESS OF SHIPPER (SH)<br />CONSIGNEE (COO AND)
+          </th>
+          <th class="col-bl">BILL OF LADING NUMBE</th>
+          <th class="col-cn">CONTAINER DETAILS</th>
+          <th class="col-pk">NBR & KIND<br />OF PACKAGE</th>
+          <th class="col-ds">DESCRIPTION<br />OF GOODS</th>
+          <th class="col-wt">GROSS WEIGHT</th>
+          <th class="col-hs">HS CODE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% bills.forEach(function(bill, billIndex) { %>
+
+          <% bill.items.forEach(function(item, index) { %>
+          <tr>
+            <% if(index === 0) { %>
+              <td rowspan="<%= bill.items.length + 1 %>" style="white-space: pre-line; vertical-align: top;">
+                <span class="bold-text">Shipper:</span><br />
+                <%= bill.shipper %><br /><br />
+
+                <span class="bold-text">CONSIGNEE:</span><br />
+                <%= bill.consignee %><br /><br />
+
+                <span class="bold-text">NOTIFY:</span><br />
+                <%= bill.notifyAddress %>
+              </td>
+            <% } %>
+
+            <td>
+              <%= bill.billNo %><br /><br />
+              BL TYPE: <%= bill.blType %><br />
+              PAYMENT TYPE: COLLECT
+            </td>
+            <td>
+              <span class="bold-text"><%= item.marksNos %></span><br /><br />
+              1x40 HC<br />
+              SEAL: <%= item.sealNo %><br />
+              FREE TIME: <%= bill.freeDays %>
+            </td>
+            <td><%= item.noofPieces %><%= bill.qtyType !== '-' ? ' ' + bill.qtyType : '' %></td>
+            <td><%= item.quantityDescription %></td>
+            <td><%= item.grossWeight %></td>
+            <td><%= item.hsCode %></td>
+          </tr>
+          <% }) %>
+
+          <%
+            var totalPkgs = bill.items.reduce(function(sum, i) {
+              return sum + (parseInt(i.noofPieces) || 0);
+            }, 0);
+
+            var totalGW = bill.items.reduce(function(sum, i) {
+              return sum + (parseInt(i.grossWeight) || 0);
+            }, 0);
+          %>
+
+          <tr class="footer-row">
+            <td></td>
+            <td>Total No. of Containers<br />
+              <%= bill.items.length %> CONTAINER<%= bill.items.length !== 1 ? 'S' : '' %>
+            </td>
+            <td>Total No. of Pkgs<br /><%= totalPkgs %><%= bill.qtyType !== '-' ? ' ' + bill.qtyType : '' %></td>
+            <td>TOTAL N.W:<br /><%= totalGW %> KGS</td>
+            <td colspan="2">TOTAL G.W<br /><%= totalGW %> KGS</td>
+          </tr>
+
+          <% if (billIndex < bills.length - 1) { %>
+            <tr>
+              <td colspan="7"><hr class="bill-separator" /></td>
+            </tr>
+          <% } %>
+
+        <% }); %>
+      </tbody>
+    </table>
+
+  </body>
+</html>

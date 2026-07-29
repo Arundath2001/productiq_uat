@@ -1,0 +1,429 @@
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
+import Branch from "../models/branch.model.js";
+import User from "../models/user.model.js";
+
+export const getBranches = async (req, res) => {
+    try {
+        const branches = await Branch.find()
+            .populate('createdBy', 'username')
+            .sort({ branchName: 1 });
+
+        res.status(200).json({
+            message: "Branches fetched successfully",
+            branches
+        });
+    } catch (error) {
+        console.log("Error in getBranches controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getBranchAddresses = async (req, res) => {
+    try {
+        const addresses = await Branch.find()
+            .select('branchName countryCode address')
+            .sort({ branchName: 1 });
+
+        res.status(200).json({
+            message: "Branch addresses fetched successfully",
+            addresses
+        });
+    } catch (error) {
+        console.log("Error in getBranchAddresses controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getBranchById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const branch = await Branch.findById(id)
+            .populate('createdBy', 'username');
+
+        if (!branch) {
+            return res.status(404).json({ message: "Branch not found" });
+        }
+
+        res.status(200).json({
+            message: "Branch fetched successfully",
+            branch
+        });
+    } catch (error) {
+        console.log("Error in getBranchById controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getBranchAdmins = async (req, res) => {
+    try {
+        const { branchId } = req.params;
+
+        if (!branchId) {
+            return res.status(400).json({ message: "Branch ID is required!" })
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(branchId)) {
+            return res.status(400).json({ message: "Invalid branch ID format" });
+        }
+
+        const admins = await User.find({
+            branchId: branchId,
+            role: 'admin'
+        }).select('username adminRoles createdAt').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            message: "Branch administrators fetched successfully",
+            admins
+        });
+    } catch (error) {
+        console.log("Error in getBranchAdmins controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const checkUsernames = async (req, res) => {
+    try {
+        const { usernames } = req.body;
+
+        if (!usernames || !Array.isArray(usernames)) {
+            return res.status(400).json({ message: "Usernames array is required!" });
+        }
+
+        const existingUsers = await User.find({
+            username: { $in: usernames }
+        }).select('username');
+
+        const existingUsernames = existingUsers.map(user => user.username);
+
+        res.status(200).json({ existingUsernames });
+    } catch (error) {
+        console.log("Error in checkUsernames controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const updateBranch = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { branchName, countryCode, address } = req.body;
+        const updateData = {};
+
+        if (branchName !== undefined) updateData.branchName = branchName;
+        if (countryCode !== undefined) updateData.countryCode = countryCode;
+        if (address !== undefined) updateData.address = address;
+
+        const updatedBranch = await Branch.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        ).populate('createdBy', 'username');
+
+        if (!updatedBranch) {
+            return res.status(404).json({ message: "Branch not found" });
+        }
+
+        res.status(200).json({
+            message: "Branch updated successfully",
+            branch: updatedBranch
+        });
+    } catch (error) {
+        console.log("Error in updateBranch controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const deleteBranch = async (req, res) => {
+    const session = await mongoose.startSession();
+
+    try {
+        const { id } = req.params;
+
+        session.startTransaction();
+
+        const branch = await Branch.findById(id).session(session);
+        if (!branch) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Branch not found" });
+        }
+
+        await User.deleteMany({
+            branch: branch.branchName
+        }).session(session);
+
+        await Branch.findByIdAndDelete(id).session(session);
+
+        await session.commitTransaction();
+
+        res.status(200).json({
+            message: "Branch and associated administrators deleted successfully"
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        console.log("Error in deleteBranch controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    } finally {
+        session.endSession();
+    }
+};
+
+export const addAdminToBranch = async (req, res) => {
+    try {
+        const { branchName } = req.params;
+        const { username, password, adminRoles } = req.body;
+
+        if (!username || !password || !adminRoles) {
+            return res.status(400).json({ message: "All fields are required!" });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters"
+            });
+        }
+
+        const branch = await Branch.findOne({ branchName });
+        if (!branch) {
+            return res.status(404).json({ message: "Branch not found" });
+        }
+
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: "Username already exists" });
+        }
+
+        const createdBy = req.user ? req.user._id : null;
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newAdmin = new User({
+            username,
+            password: hashedPassword,
+            adminRoles,
+            role: 'admin',
+            branchId: branch._id,
+            createdBy
+        });
+
+        const savedAdmin = await newAdmin.save();
+
+        res.status(201).json({
+            message: "Administrator added to branch successfully",
+            admin: {
+                id: savedAdmin._id,
+                username: savedAdmin.username,
+                role: savedAdmin.role,
+                branch: savedAdmin.branch
+            }
+        });
+
+    } catch (error) {
+        console.log("Error in addAdminToBranch controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const editBranchAdmin = async (req, res) => {
+    try {
+        const { adminId } = req.params;
+
+        console.log(adminId);
+
+
+        const { username, password, adminRoles } = req.body;
+
+        if (!adminId) {
+            return res.status(400).json({ message: "Admin ID is required!" });
+        }
+
+        const admin = await User.findById(adminId);
+
+        if (!admin) {
+            return res.status(404).json({ message: "Administrator not found" });
+        }
+
+        if (admin.role !== 'admin') {
+            return res.status(400).json({ message: "User is not an administrator" });
+        }
+
+        const updateData = {};
+
+        if (username && username.trim() && username !== admin.username) {
+            const exisitngUser = await User.findOne({ username: username.trim(), _id: { $ne: adminId } });
+
+            if (exisitngUser) {
+                return res.status(400).json({ message: "Username already exists!" });
+            }
+            updateData.username = username.trim();
+
+        }
+
+        if (adminRoles !== undefined) {
+            if (typeof adminRoles === 'string' && adminRoles.trim()) {
+                updateData.adminRoles = adminRoles.trim();
+            } else if (Array.isArray(adminRoles)) {
+                updateData.adminRoles = adminRoles.join(',');
+            }
+        }
+
+        if (password && password.trim()) {
+            if (password.length < 8) {
+                return res.status(400).json({
+                    message: "Password must be at least 8 characters"
+                });
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(password, salt);
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: "No valid fields to update" });
+        }
+
+        const updatedAdmin = await User.findByIdAndUpdate(adminId, updateData, {
+            new: true,
+            runValidators: true,
+            select: '-password'
+        });
+
+        if (!updatedAdmin) {
+            return res.status(404).json({ message: "Administrator not found" });
+        }
+
+        res.status(200).json({
+            message: "Administrator updated successfully",
+            admin: {
+                id: updatedAdmin._id,
+                username: updatedAdmin.username,
+                role: updatedAdmin.role,
+                adminRoles: updatedAdmin.adminRoles,
+                branch: updatedAdmin.branch,
+                createdAt: updatedAdmin.createdAt,
+                updatedAt: updatedAdmin.updatedAt
+            }
+        });
+
+
+    } catch (error) {
+
+        console.log("Error in editBranchAdmin controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+
+    }
+}
+
+export const removeAdminFromBranch = async (req, res) => {
+    try {
+        const { adminId } = req.params;
+
+        const adminToDelete = await User.findById(adminId);
+
+        if (!adminToDelete) {
+            return res.status(404).json({ message: "Administrator not found" });
+        }
+
+        const adminsInBranch = await User.find({
+            branchId: adminToDelete.branchId,
+            _id: { $ne: adminId },
+            adminRoles: adminToDelete.adminRoles
+        });
+
+        if (adminsInBranch.length === 0) {
+            return res.status(400).json({
+                message: "Cannot delete the only admin in this branch",
+                remainingAdmin: adminToDelete,
+            });
+        }
+
+        await User.findByIdAndDelete(adminId);
+
+        res.status(200).json({
+            message: "Administrator removed successfully",
+            remainingAdmins: adminsInBranch,
+        });
+
+    } catch (error) {
+        console.log("Error in removeAdminFromBranch controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const createBranchWithAdmins = async (req, res) => {
+    try {
+        const { branchData, adminsData } = req.body;
+
+
+        if (!branchData || !adminsData || adminsData.length === 0) {
+            return res.status(400).json({ message: "Branch data and at least one admin are required" });
+        }
+
+        const { branchName, countryCode } = branchData;
+
+        if (!branchName || !countryCode) {
+            return res.status(400).json({ message: "Branch name and country are required" });
+        }
+
+        for (let admin of adminsData) {
+            if (!admin.username || !admin.adminRoles || !admin.password) {
+                return res.status(400).json({ message: "All admin fields (username, adminRoles, password) are required" });
+            }
+        }
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+
+            const branch = new Branch({
+                branchName: branchData.branchName,
+                countryCode: branchData.countryCode,
+                address: branchData.address || "",
+                createdBy: req.user._id
+
+            });
+
+            const savedBranch = await branch.save({ session });
+
+            const adminPromises = adminsData.map(async (adminData) => {
+                const existingUser = await User.findOne({ username: adminData.username });
+
+                if (existingUser) {
+                    throw new Error(`Username ${adminData.username} already exists`);
+                }
+
+                const hashedPassword = await bcrypt.hash(adminData.password, 10);
+
+                const branchAdmin = new User({
+                    username: adminData.username,
+                    password: hashedPassword,
+                    role: 'admin',
+                    adminRoles: adminData.adminRoles,
+                    createdBy: req.user._id,
+                    branchId: savedBranch._id
+                });
+
+                return branchAdmin.save({ session });
+
+            });
+
+            const savedBranchAdmins = await Promise.all(adminPromises);
+
+            await session.commitTransaction();
+
+            res.status(200).json({ message: "Branch and admins created successfully" });
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
+
+    } catch (error) {
+        console.log("Error in createBranchWithAdmins controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
