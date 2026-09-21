@@ -47,6 +47,7 @@ const allowedOrigins = [
   "https://uat.aswaqforwarder.com",
   "https://productiq-web.onrender.com",
   "https://www.aswaqforwarder.com",
+  "https://www.uat.aswaqforwarder.com",
   "http://localhost:8081"
 ];
 
