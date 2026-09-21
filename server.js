@@ -122,7 +122,7 @@ setupVoyageAutomation(io);
 
 server.listen(port, () => {
   connectDb();
-  console.log("Server started at http://localhost:5000");
+  console.log(`Server started at http://localhost:${port}`);
   console.log("Voyage automation is active");
 })
 
