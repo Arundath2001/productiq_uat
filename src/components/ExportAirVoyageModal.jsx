@@ -26,9 +26,28 @@ const ExportAirVoyageModal = ({ onClose, onConfirm, currentVoyageInfo, isExporti
   }, [authUser?.branchId, getAirports, getAirlines]);
 
   useEffect(() => {
-    if (currentVoyageInfo?.airlineId) {
-      const id = typeof currentVoyageInfo.airlineId === 'object' ? currentVoyageInfo.airlineId._id : currentVoyageInfo.airlineId;
-      setExportData(prev => ({ ...prev, airlineId: id }));
+    if (currentVoyageInfo) {
+      const airlineId = typeof currentVoyageInfo.airlineId === 'object' 
+        ? currentVoyageInfo.airlineId?._id 
+        : currentVoyageInfo.airlineId || "";
+
+      const landingAirportId = typeof currentVoyageInfo.landingAirportId === 'object' 
+        ? currentVoyageInfo.landingAirportId?._id 
+        : currentVoyageInfo.landingAirportId || "";
+
+      let etaStr = "";
+      if (currentVoyageInfo.eta) {
+        const d = new Date(currentVoyageInfo.eta);
+        if (!isNaN(d.getTime())) {
+          etaStr = d.toISOString().split("T")[0];
+        }
+      }
+
+      setExportData({
+        eta: etaStr,
+        landingAirportId: landingAirportId,
+        airlineId: airlineId,
+      });
     }
   }, [currentVoyageInfo]);
 
@@ -43,17 +62,18 @@ const ExportAirVoyageModal = ({ onClose, onConfirm, currentVoyageInfo, isExporti
   }));
 
   const selectedAirlineOption = airlineOptions.find(opt => opt._id === exportData.airlineId);
+  const selectedAirportOption = airportOptions.find(opt => opt._id === exportData.landingAirportId);
 
   const handleAirportSelect = (selectedAirport) => {
-    setExportData({ ...exportData, landingAirportId: selectedAirport._id });
+    setExportData(prev => ({ ...prev, landingAirportId: selectedAirport._id }));
   };
 
   const handleAirlineSelect = (selectedAirline) => {
-    setExportData({ ...exportData, airlineId: selectedAirline._id });
+    setExportData(prev => ({ ...prev, airlineId: selectedAirline._id }));
   };
 
   const handleChange = (e) => {
-    setExportData({ ...exportData, [e.target.name]: e.target.value });
+    setExportData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e) => {
@@ -97,6 +117,7 @@ const ExportAirVoyageModal = ({ onClose, onConfirm, currentVoyageInfo, isExporti
           placeholder="Select Airport"
           options={airportOptions}
           onSelect={handleAirportSelect}
+          value={selectedAirportOption}
         />
 
         <div className="flex justify-end gap-3 mt-4">

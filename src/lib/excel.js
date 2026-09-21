@@ -21,8 +21,39 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
             acc[company] = {};
         }
 
+        const formatMixGoniName = (rawName, goniNumber) => {
+            if (!rawName) return '';
+            let name = rawName.trim();
+            let num = goniNumber;
+
+            if (num == null) {
+                const match = name.match(/[-_\s](\d+)$/);
+                if (match) {
+                    num = parseInt(match[1], 10);
+                }
+            }
+
+            const upper = name.toUpperCase();
+
+            if (upper.includes('M+B') || upper.includes('M + B')) {
+                name = 'M + B / M';
+            } else if (upper.includes('T-MIX') || upper.includes('T MIX') || upper.includes('MIXED/T') || upper.includes('T/M') || upper.startsWith('T')) {
+                name = 'T / M';
+            } else if (upper.includes('M-MIX') || upper.includes('M MIX') || upper.includes('MIXED/M') || upper.includes('M/M') || upper.startsWith('M')) {
+                name = 'M / M';
+            }
+
+            if (num != null) {
+                name = `${name} - ${num}`;
+            }
+
+            return name;
+        };
+
         const isMix = item.goniCompanyCode === "ALL COMPANY" || 
                       (item.goniName && (item.goniName.includes("MIX") || item.goniName.includes("M/M") || item.goniName.includes("T/M") || (item.goniCompanyCode && item.goniCompanyCode !== company)));
+
+        const mixNameKey = isMix && item.goniName ? formatMixGoniName(item.goniName, item.goniNumber) : null;
 
         if (!acc[company][productCode]) {
             acc[company][productCode] = {
@@ -31,7 +62,7 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
                 quantity: 1,
                 weight: parseFloat(item.weight) || 0,
                 regularCartons: (!isMix && item.goniNumber != null) ? [item.goniNumber] : [],
-                mixCartons: (isMix && item.goniName) ? { [item.goniName]: 1 } : {}
+                mixCartons: mixNameKey ? { [mixNameKey]: 1 } : {}
             };
         } else {
             acc[company][productCode].quantity += 1;
@@ -41,9 +72,9 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
                 if (!acc[company][productCode].regularCartons.includes(item.goniNumber)) {
                     acc[company][productCode].regularCartons.push(item.goniNumber);
                 }
-            } else if (isMix && item.goniName) {
-                const currentCount = acc[company][productCode].mixCartons[item.goniName] || 0;
-                acc[company][productCode].mixCartons[item.goniName] = currentCount + 1;
+            } else if (mixNameKey) {
+                const currentCount = acc[company][productCode].mixCartons[mixNameKey] || 0;
+                acc[company][productCode].mixCartons[mixNameKey] = currentCount + 1;
             }
         }
 
@@ -138,8 +169,8 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
         { key: 'weight', width: 14 },
         { key: 'pricePerKg', width: 14 },
         { key: 'shippingCost', width: 14 },
-        { key: 'totalCtn', width: 12 },
-        { key: 'totalNoCtn', width: 14 }
+        { key: 'totalCtn', width: 24 },
+        { key: 'totalNoCtn', width: 18 }
     ];
 
     // Helper functions for formatting dates
@@ -192,13 +223,13 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
     worksheet.mergeCells('A1:F1');
     const cellA1 = worksheet.getCell('A1');
     cellA1.value = `BY AIR - ${airlineUpper}`;
-    cellA1.font = { bold: true, underline: true, size: 12, name: 'Arial' };
+    cellA1.font = { bold: true, underline: true, size: 12, name: 'Calibri' };
     cellA1.alignment = { horizontal: 'left', vertical: 'middle' };
 
     worksheet.mergeCells('G1:L1');
     const cellG1 = worksheet.getCell('G1');
     cellG1.value = `(عن طريق الجو - ${airlineArabic})`;
-    cellG1.font = { bold: true, underline: true, size: 12, name: 'Arial' };
+    cellG1.font = { bold: true, underline: true, size: 12, name: 'Calibri' };
     cellG1.alignment = { horizontal: 'right', vertical: 'middle' };
 
     const topRow1 = worksheet.getRow(1);
@@ -220,8 +251,8 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
     const cellA2 = worksheet.getCell('A2');
     cellA2.value = {
         richText: [
-            { text: 'DATE (تاريخ) : ', font: { bold: true, size: 10, name: 'Arial' } },
-            { text: dateStr, font: { bold: true, underline: true, size: 10, name: 'Arial' } }
+            { text: 'DATE (تاريخ) : ', font: { bold: true, size: 10, name: 'Calibri' } },
+            { text: dateStr, font: { bold: true, underline: true, size: 10, name: 'Calibri' } }
         ]
     };
     cellA2.alignment = { horizontal: 'left', vertical: 'middle' };
@@ -230,21 +261,21 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
     worksheet.mergeCells('D2:G2');
     const cellD2 = worksheet.getCell('D2');
     cellD2.value = etaLandingText;
-    cellD2.font = { bold: true, size: 10, name: 'Arial', color: { argb: 'FFFF0000' } };
+    cellD2.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FFFF0000' } };
     cellD2.alignment = { horizontal: 'center', vertical: 'middle' };
 
     // Cell 3 (H2:J2): VOYAGE NUMBER Label
     worksheet.mergeCells('H2:J2');
     const cellH2 = worksheet.getCell('H2');
-    cellH2.value = 'VOYAGE NUMBER(رقم الرحلة):';
-    cellH2.font = { bold: true, underline: true, size: 10, name: 'Arial' };
+    cellH2.value = 'VOYAGE NUMBER (رقم الرحلة) : ';
+    cellH2.font = { bold: true, underline: true, size: 10, name: 'Calibri' };
     cellH2.alignment = { horizontal: 'right', vertical: 'middle' };
 
     // Cell 4 (K2:L2): Voyage Number Value
     worksheet.mergeCells('K2:L2');
     const cellK2 = worksheet.getCell('K2');
     cellK2.value = voyageNum;
-    cellK2.font = { bold: true, underline: true, size: 10, name: 'Arial' };
+    cellK2.font = { bold: true, underline: true, size: 10, name: 'Calibri' };
     cellK2.alignment = { horizontal: 'center', vertical: 'middle' };
 
     const topRow2 = worksheet.getRow(2);
@@ -278,7 +309,7 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
 
     const headerRow = worksheet.getRow(3);
     headerRow.values = headers;
-    headerRow.height = 60;
+    headerRow.height = 75;
 
     headerRow.eachCell((cell, colNumber) => {
         let fontColor = 'FF000000'; // Default black
@@ -296,7 +327,7 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
         cell.font = {
             bold: true,
             size: 10,
-            name: 'Arial',
+            name: 'Calibri',
             color: { argb: fontColor }
         };
         cell.alignment = {
@@ -357,7 +388,7 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
                 };
                 cell.font = {
                     size: 10,
-                    name: 'Arial'
+                    name: 'Calibri'
                 };
             });
         }
@@ -373,9 +404,41 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
         const regCtnCount = regCartons.length;
         const totalMixPcs = mixCartonEntries.reduce((sum, [, count]) => sum + count, 0);
 
+        const formatNumberRanges = (nums) => {
+            if (!nums || nums.length === 0) return '';
+            const sorted = Array.from(new Set(nums))
+                .map(n => parseInt(n, 10))
+                .filter(n => !isNaN(n))
+                .sort((a, b) => a - b);
+            if (sorted.length === 0) return nums.join(',');
+
+            const ranges = [];
+            let start = sorted[0];
+            let prev = sorted[0];
+
+            for (let i = 1; i <= sorted.length; i++) {
+                if (i < sorted.length && sorted[i] === prev + 1) {
+                    prev = sorted[i];
+                } else {
+                    if (start === prev) {
+                        ranges.push(`${start}`);
+                    } else if (prev === start + 1) {
+                        ranges.push(`${start},${prev}`);
+                    } else {
+                        ranges.push(`${start}-${prev}`);
+                    }
+                    if (i < sorted.length) {
+                        start = sorted[i];
+                        prev = sorted[i];
+                    }
+                }
+            }
+            return ranges.join(',');
+        };
+
         const ctnParts = [];
         if (regCtnCount > 0) {
-            ctnParts.push(regCartons.join(','));
+            ctnParts.push(formatNumberRanges(regCartons));
         }
         if (mixCartonEntries.length > 0) {
             const mixStr = mixCartonEntries.map(([name, pcs]) => `${name}[${pcs}PC]`).join(', ');
@@ -414,7 +477,7 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
         // Add formula to shipping cost column (column J, which is column 10)
         const shippingCostCell = dataRow.getCell(10);
         shippingCostCell.value = {
-            formula: `H${dataRow.number}*I${dataRow.number}`,
+            formula: `IF(ISNUMBER(I${dataRow.number}), H${dataRow.number}*I${dataRow.number}, 0)`,
             result: 0
         };
 
@@ -439,16 +502,12 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
             cell.alignment = {
                 horizontal: 'center',
                 vertical: 'middle',
+                wrapText: true,
                 readingOrder: 'contextDependent'
             };
 
             let fontSize = 10;
             let fontColor = 'FF000000'; // Default black
-
-            // Smaller font for specific columns
-            if (colNumber === 3 || colNumber === 4 || colNumber === 6 || colNumber === 7) {
-                fontSize = 8;
-            }
 
             // Red color for price and shipping cost columns
             if (colNumber === 9 || colNumber === 10) {
@@ -462,11 +521,105 @@ export const exportVoyageData = async (data, voyageName = null, voyageId = null,
 
             cell.font = {
                 size: fontSize,
-                name: 'Arial',
+                name: 'Calibri',
                 color: { argb: fontColor }
             };
         });
     });
+
+    // --- BOTTOM SUMMARY ROWS (FULL TABLE WIDTH: COLUMNS 1 TO 12) ---
+    const startDataRow = 4;
+    const endDataRow = worksheet.lastRow ? worksheet.lastRow.number : 3;
+
+    if (endDataRow >= startDataRow) {
+        // 1. TOTAL WEIGHT & TOTAL SHIPPING COST ROW
+        const totalWeightRow = worksheet.addRow([]);
+        const totalWeightRowNum = totalWeightRow.number;
+        totalWeightRow.height = 28;
+
+        // Merge A to G (Cols 1-7) for TOTAL WEIGHT label
+        worksheet.mergeCells(`A${totalWeightRowNum}:G${totalWeightRowNum}`);
+        const totalWeightLabelCell = worksheet.getCell(`A${totalWeightRowNum}`);
+        totalWeightLabelCell.value = 'TOTAL WEIGHT';
+        totalWeightLabelCell.font = { bold: true, size: 10, name: 'Calibri' };
+        totalWeightLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+        // Column H (Col 8: Total Weight SUM)
+        const totalWeightSumCell = worksheet.getCell(`H${totalWeightRowNum}`);
+        totalWeightSumCell.value = {
+            formula: `SUM(H${startDataRow}:H${endDataRow})`,
+            result: 0
+        };
+        totalWeightSumCell.numFmt = '#,##0.000';
+        totalWeightSumCell.font = { bold: true, size: 10, name: 'Calibri' };
+        totalWeightSumCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+        // Column I (Col 9: empty)
+        const emptyColI = worksheet.getCell(`I${totalWeightRowNum}`);
+        emptyColI.value = '';
+
+        // Column J (Col 10: Total Shipping Cost SUM)
+        const totalShippingSumCell = worksheet.getCell(`J${totalWeightRowNum}`);
+        totalShippingSumCell.value = {
+            formula: `SUM(J${startDataRow}:J${endDataRow})`,
+            result: 0
+        };
+        totalShippingSumCell.numFmt = '$#,##0.00';
+        totalShippingSumCell.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FFFF0000' } };
+        totalShippingSumCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+        // Merge K to L (Cols 11-12: empty right side to fill full table width)
+        worksheet.mergeCells(`K${totalWeightRowNum}:L${totalWeightRowNum}`);
+        const emptyRightCell = worksheet.getCell(`K${totalWeightRowNum}`);
+        emptyRightCell.value = '';
+
+        // Apply borders for Total Weight row (Cols 1 to 12)
+        for (let col = 1; col <= 12; col++) {
+            const cell = worksheet.getCell(totalWeightRowNum, col);
+            cell.border = {
+                top: { style: 'medium' },
+                bottom: { style: 'medium' },
+                left: { style: col === 1 || col === 8 || col === 10 || col === 11 ? 'medium' : 'thin' },
+                right: { style: col === 7 || col === 8 || col === 10 || col === 12 ? 'medium' : 'thin' }
+            };
+        }
+
+        // 2. TOTAL PACKAGE ROW (Cols 1 to 12)
+        const allGonies = new Set();
+        data.forEach(item => {
+            if (item.goniNumber != null) allGonies.add(item.goniNumber.toString());
+            if (item.goniName) allGonies.add(item.goniName.toString());
+        });
+        const totalPkgCount = allGonies.size || data.length;
+
+        const totalPkgRow = worksheet.addRow([]);
+        const totalPkgRowNum = totalPkgRow.number;
+        totalPkgRow.height = 25;
+
+        // Merge A to G (Cols 1-7) for TOTAL PACKAGE label
+        worksheet.mergeCells(`A${totalPkgRowNum}:G${totalPkgRowNum}`);
+        const totalPkgCell = worksheet.getCell(`A${totalPkgRowNum}`);
+        totalPkgCell.value = 'TOTAL PACKAGE (مجموعة كاملة)';
+        totalPkgCell.font = { bold: true, size: 10, name: 'Calibri' };
+        totalPkgCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+        // Merge H to L (Cols 8-12) for TOTAL PACKAGE count
+        worksheet.mergeCells(`H${totalPkgRowNum}:L${totalPkgRowNum}`);
+        const totalCountCell = worksheet.getCell(`H${totalPkgRowNum}`);
+        totalCountCell.value = `TOTAL PACKAGES = ${totalPkgCount}`;
+        totalCountCell.font = { bold: true, size: 10, name: 'Calibri' };
+        totalCountCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+        for (let col = 1; col <= 12; col++) {
+            const cell = worksheet.getCell(totalPkgRowNum, col);
+            cell.border = {
+                top: { style: 'medium' },
+                bottom: { style: 'medium' },
+                left: { style: col === 1 || col === 8 ? 'medium' : 'thin' },
+                right: { style: col === 7 || col === 12 ? 'medium' : 'thin' }
+            };
+        }
+    }
 
     let filename = 'voyage_data.xlsx';
     if (voyageName) {
