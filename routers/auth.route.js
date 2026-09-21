@@ -27,7 +27,9 @@ import {
     employeeLogin,
     clientLogin,
     createEmployee,
-    getEmployee
+    getEmployee,
+    createAdmin,
+    switchBranch
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -35,6 +37,8 @@ const router = express.Router();
 
 // Authentication routes
 router.post("/:branchId/register", protectRoute, createEmployee);
+router.post("/create-admin", protectRoute, createAdmin);
+router.put("/switch-branch/:branchId", protectRoute, switchBranch);
 router.post("/login", login);
 router.post("/employee-login", employeeLogin);
 router.post("/client-login", clientLogin);

@@ -65,7 +65,7 @@ const buildManifestWorkbook = async (bills) => {
 
     worksheet.mergeCells("A3:C4");
     const companyCell = worksheet.getCell("A3");
-    companyCell.value = "ASWAQ FORWARDER SEA\nSHIPPING LINES AGENTS CO. L.L.C";
+    companyCell.value = ((process.env.APP_NAME || "Aswaq Forwarder").toUpperCase() + " SEA\n") + "SHIPPING LINES AGENTS CO. L.L.C";
     companyCell.font = manifestFont;
     companyCell.alignment = { wrapText: true, vertical: "top" };
 
@@ -199,7 +199,7 @@ export const saveBillOFLading = async (req, res) => {
 export const getAllBills = async (req, res) => {
     try {
         const branchId = req.user?.branchId;
-        const bills = await BillOfLading.find({ branchId });
+        const bills = await BillOfLading.find({ branchId }).populate('branchId', 'branchName address');
         res.status(200).json(bills);
     } catch (error) {
         console.error("Error fetching Bills of Lading:", error);
@@ -210,7 +210,7 @@ export const getAllBills = async (req, res) => {
 export const getBillById = async (req, res) => {
     try {
         const { id } = req.params;
-        const bill = await BillOfLading.findById(id);
+        const bill = await BillOfLading.findById(id).populate('branchId', 'branchName address');
 
         if (!bill) {
             return res.status(404).json({ message: "Bill of Lading not found" });
@@ -280,7 +280,7 @@ export const downloadManifest = async (req, res) => {
         const workbook = await buildManifestWorkbook(bills);
         const excelData = await workbook.xlsx.writeBuffer();
         const filename = billIds ? "manifests.xlsx" : "manifest.xlsx";
-        
+
         res.set({
             'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition': `attachment; filename="${filename}"`,

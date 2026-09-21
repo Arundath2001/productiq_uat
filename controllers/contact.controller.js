@@ -81,7 +81,7 @@ export const contactController = async (req, res) => {
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 12px; margin: 0;">
-              This email was sent from the Aswaq Forwarder contact form
+              This email was sent from the ${process.env.APP_NAME || "Aswaq Forwarder"} contact form
             </p>
             <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
               Received on: ${new Date().toLocaleString()}
@@ -93,13 +93,13 @@ export const contactController = async (req, res) => {
 
     // Auto-reply email content for the sender
     const autoReplyMailOptions = {
-      from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+      from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Thank you for contacting Aswaq Forwarder - We received your message',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="color: #007bff; margin: 0;">Aswaq Forwarder</h2>
+            <h2 style="color: #007bff; margin: 0;">${process.env.APP_NAME || "Aswaq Forwarder"}</h2>
             <p style="color: #666; margin: 5px 0 0 0;">Logistics & Forwarding Services</p>
           </div>
           
@@ -130,7 +130,7 @@ export const contactController = async (req, res) => {
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 12px; margin: 0;">
               Best regards,<br>
-              <strong>Aswaq Forwarder Team</strong>
+              <strong>${process.env.APP_NAME || "Aswaq Forwarder"} Team</strong>
             </p>
           </div>
         </div>

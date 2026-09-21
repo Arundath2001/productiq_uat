@@ -114,6 +114,10 @@ const userSchema = mongoose.Schema({
                 ));
         }
     },
+    accessibleBranches: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Branch"
+    }],
     expoPushTokens: [{
         token: {
             type: String,

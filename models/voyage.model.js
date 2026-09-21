@@ -19,6 +19,11 @@ const voyageSchema = mongoose.Schema({
         ref: 'Branch',
         required: true
     },
+    airlineId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Airline',
+        required: false
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -52,6 +57,15 @@ const voyageSchema = mongoose.Schema({
     },
     expectedDate: {
         type: Date,
+        required: false
+    },
+    eta: {
+        type: Date,
+        required: false
+    },
+    landingAirportId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Airport',
         required: false
     },
     delayDate: {

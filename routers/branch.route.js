@@ -10,13 +10,15 @@ import {
     deleteBranch,
     addAdminToBranch,
     removeAdminFromBranch,
-    editBranchAdmin
+    editBranchAdmin,
+    getAllAdmins
 } from "../controllers/branch.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 router.get("/branches", protectRoute, getBranches);
+router.get("/all-admins", protectRoute, getAllAdmins);
 router.get("/addresses", protectRoute, getBranchAddresses);
 router.get("/:id", protectRoute, getBranchById);
 router.post("/create-with-admins", protectRoute, createBranchWithAdmins);

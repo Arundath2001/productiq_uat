@@ -27,7 +27,7 @@ export const notification = async (req, res) => {
     try {
         const {
             message,
-            title = "Aswaq Forwarder",
+            title = (process.env.APP_NAME || "Aswaq Forwarder"),
             sendPushNotification = true,
             category = "normal",
             type = "manual",

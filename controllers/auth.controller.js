@@ -38,7 +38,7 @@ const sendPushNotificationToMultiple = async (expoPushTokens, message) => {
     const messages = expoPushTokens.map(token => ({
         to: token,
         sound: 'default',
-        title: 'Aswaq Forwarder',
+        title: (process.env.APP_NAME || "Aswaq Forwarder"),
         body: message,
         data: { withSome: 'data' },
     }));
@@ -133,7 +133,7 @@ export const sendRegistrationOTP = async (req, res) => {
         }
 
         const mailOptions = {
-            from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+            from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Registration OTP - Aswaq Forwarder',
             html: `
@@ -170,7 +170,7 @@ export const sendRegistrationOTP = async (req, res) => {
             <!-- Footer -->
             <div style="background: #f8fafc; padding: 15px 20px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #a0aec0; margin: 0; font-size: 12px;">
-                    © 2025 Aswaq Forwarder
+                    © 2025 ${process.env.APP_NAME || "Aswaq Forwarder"}
                 </p>
             </div>
         </div>
@@ -329,7 +329,7 @@ export const sendForgotPasswordOTP = async (req, res) => {
         }
 
         const mailOptions = {
-            from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+            from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Password Reset OTP - Aswaq Forwarder',
             html: `
@@ -367,7 +367,7 @@ export const sendForgotPasswordOTP = async (req, res) => {
             <!-- Footer -->
             <div style="background: #f8fafc; padding: 15px 20px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #a0aec0; margin: 0; font-size: 12px;">
-                    © 2025 Aswaq Forwarder
+                    © 2025 ${process.env.APP_NAME || "Aswaq Forwarder"}
                 </p>
             </div>
         </div>
@@ -541,7 +541,7 @@ export const resetPassword = async (req, res) => {
         try {
             const transporter = createTransporter();
             const mailOptions = {
-                from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+                from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
                 to: email,
                 subject: 'Password Reset Successful - Aswaq Forwarder',
                 html: `
@@ -614,7 +614,7 @@ export const resetPassword = async (req, res) => {
             <!-- Footer -->
             <div style="background-color: #f7fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #718096; margin: 0 0 15px; font-size: 14px;">
-                    <strong style="color: #059669;">Aswaq Forwarder</strong> - Keeping your account secure
+                    <strong style="color: #059669;">${process.env.APP_NAME || "Aswaq Forwarder"}</strong> - Keeping your account secure
                 </p>
                 <div style="display: inline-flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
                     <a href="#" style="color: #059669; text-decoration: none; font-size: 13px; font-weight: 500; padding: 8px 16px; background-color: #ecfdf5; border-radius: 6px;">🛡️ Security Center</a>
@@ -622,7 +622,7 @@ export const resetPassword = async (req, res) => {
                     <a href="#" style="color: #059669; text-decoration: none; font-size: 13px; font-weight: 500; padding: 8px 16px; background-color: #ecfdf5; border-radius: 6px;">📋 Account Settings</a>
                 </div>
                 <p style="color: #a0aec0; margin: 20px 0 0; font-size: 12px;">
-                    © 2025 Aswaq Forwarder. All rights reserved.
+                    © 2025 ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                 </p>
             </div>
         </div>
@@ -679,7 +679,7 @@ export const resendForgotPasswordOTP = async (req, res) => {
         }
 
         const mailOptions = {
-            from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+            from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Resend Password Reset OTP - Aswaq Forwarder',
             html: `
@@ -738,7 +738,7 @@ export const resendForgotPasswordOTP = async (req, res) => {
             <!-- Footer -->
             <div style="background-color: #f7fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #718096; margin: 0 0 15px; font-size: 14px;">
-                    This is an automated message from <strong style="color: #4a5568;">Aswaq Forwarder</strong>
+                    This is an automated message from <strong style="color: #4a5568;">${process.env.APP_NAME || "Aswaq Forwarder"}</strong>
                 </p>
                 <div style="display: inline-flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
                     <a href="#" style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">Support Center</a>
@@ -748,7 +748,7 @@ export const resendForgotPasswordOTP = async (req, res) => {
                     <a href="#" style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">Security</a>
                 </div>
                 <p style="color: #a0aec0; margin: 20px 0 0; font-size: 12px;">
-                    © 2025 Aswaq Forwarder. All rights reserved.
+                    © 2025 ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                 </p>
             </div>
         </div>
@@ -922,7 +922,7 @@ export const completeRegistration = async (req, res) => {
 
             if (adminEmail) {
                 const adminMailOptions = {
-                    from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+                    from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
                     to: adminEmail,
                     subject: 'New Client Registration - Aswaq Forwarder',
                     html: `
@@ -963,7 +963,7 @@ export const completeRegistration = async (req, res) => {
                                     Please do not reply to this email.
                                 </p>
                                 <p style="color: #999; font-size: 12px;">
-                                    © ${new Date().getFullYear()} Aswaq Forwarder. All rights reserved.
+                                    © ${new Date().getFullYear()} ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                                 </p>
                             </div>
                         </div>
@@ -1035,7 +1035,7 @@ export const resendRegistrationOTP = async (req, res) => {
         }
 
         const mailOptions = {
-            from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+            from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Resend Registration OTP - Aswaq Forwarder',
             html: `
@@ -1052,7 +1052,7 @@ export const resendRegistrationOTP = async (req, res) => {
             <!-- Main Content -->
             <div style="padding: 40px 30px;">
                 <div style="text-align: center; margin-bottom: 30px;">
-                    <p style="color: #4a5568; font-size: 18px; margin: 0 0 25px; line-height: 1.6;">We've generated a fresh verification code to complete your registration with <strong style="color: #10b981;">Aswaq Forwarder</strong>.</p>
+                    <p style="color: #4a5568; font-size: 18px; margin: 0 0 25px; line-height: 1.6;">We've generated a fresh verification code to complete your registration with <strong style="color: #10b981;">${process.env.APP_NAME || "Aswaq Forwarder"}</strong>.</p>
                     
                     <!-- OTP Display -->
                     <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 2px solid #bbf7d0; padding: 25px; margin: 25px 0; border-radius: 16px; position: relative; overflow: hidden;">
@@ -1116,7 +1116,7 @@ export const resendRegistrationOTP = async (req, res) => {
             <!-- Footer -->
             <div style="background-color: #f7fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #718096; margin: 0 0 15px; font-size: 14px;">
-                    Welcome to <strong style="color: #10b981;">Aswaq Forwarder</strong> - Your trusted forwarding partner
+                    Welcome to <strong style="color: #10b981;">${process.env.APP_NAME || "Aswaq Forwarder"}</strong> - Your trusted forwarding partner
                 </p>
                 <div style="display: inline-flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
                     <a href="#" style="color: #10b981; text-decoration: none; font-size: 13px; font-weight: 500;">Help Center</a>
@@ -1126,7 +1126,7 @@ export const resendRegistrationOTP = async (req, res) => {
                     <a href="#" style="color: #10b981; text-decoration: none; font-size: 13px; font-weight: 500;">Terms of Service</a>
                 </div>
                 <p style="color: #a0aec0; margin: 20px 0 0; font-size: 12px;">
-                    © 2025 Aswaq Forwarder. All rights reserved.
+                    © 2025 ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                 </p>
             </div>
         </div>
@@ -1256,7 +1256,7 @@ export const adminLogin = async (req, res) => {
 
         const user = isSuperAdmin
             ? userCheck
-            : await User.findOne({ username }).populate('branchId', 'branchName');
+            : await User.findOne({ username }).populate('branchId', 'branchName').populate('accessibleBranches', 'branchName countryCode address');
 
         const hasAdminRoles = user.adminRoles && user.adminRoles.length > 0;
         const adminRolesList = ['bl', 'invoice', 'approve', 'shipment', 'superadmin', 'air_cargo_admin', 'ship_cargo_admin'];
@@ -1286,6 +1286,7 @@ export const adminLogin = async (req, res) => {
             email: user.email,
             token,
             adminRoles: user.adminRoles,
+            accessibleBranches: user.accessibleBranches,
             isAdmin: true,
         };
 
@@ -1524,6 +1525,7 @@ export const checkAuth = (req, res) => {
             rejectionMessage: req.user.rejectionMessage,
             branchId: req.user.branchId?._id,
             branchName: req.user.branchId?.branchName,
+            accessibleBranches: req.user.accessibleBranches,
             createdAt: req.user.createdAt,
             updatedAt: req.user.updatedAt,
             cargoTypes: req.user.cargoTypes
@@ -1538,24 +1540,42 @@ export const checkAuth = (req, res) => {
 
 export const getEmployee = async (req, res) => {
     try {
-
         const { branchId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 0; 
+        const search = req.query.search || "";
+        
+        let query = { role: "employee", branchId };
+        if (search) {
+            query.username = { $regex: search, $options: "i" };
+        }
 
-        const employees = await User.find({ role: "employee", branchId }, "-password").populate("createdBy", "username").sort({ createdAt: -1 });
+        const skip = limit > 0 ? (page - 1) * limit : 0;
 
-        const clients = await User.find({ role: "client" }, "-password")
+        const employeesPromise = User.find(query, "-password")
+            .populate("createdBy", "username")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalEmployeesPromise = User.countDocuments(query);
+
+        const clientsPromise = User.find({ role: "client" }, "-password")
             .populate("createdBy", "username")
             .populate("approvedBy", "username")
             .populate("rejectedBy", "username")
             .sort({ createdAt: -1 });
 
+        const [employees, totalEmployees, clients] = await Promise.all([employeesPromise, totalEmployeesPromise, clientsPromise]);
+
         res.status(200).json({
             employees,
+            totalEmployees,
             clients
         });
 
     } catch (error) {
-        console.log("Error in getUserData controller", error.message);
+        console.log("Error in getEmployee controller", error.message);
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -1794,7 +1814,7 @@ export const approveClient = async (req, res) => {
             const approverName = user.approvedBy?.username || 'Admin';
 
             const mailOptions = {
-                from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+                from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
                 to: user.email,
                 subject: isReapproval
                     ? 'Account Re-Approved - Aswaq Forwarder'
@@ -1840,7 +1860,7 @@ export const approveClient = async (req, res) => {
                                 If you have any questions, please contact our support team.
                             </p>
                             <p style="color: #999; font-size: 12px;">
-                                © ${new Date().getFullYear()} Aswaq Forwarder. All rights reserved.
+                                © ${new Date().getFullYear()} ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                             </p>
                         </div>
                     </div>
@@ -1955,7 +1975,7 @@ export const rejectClient = async (req, res) => {
             const rejectorName = user.rejectedBy?.username || 'Admin';
 
             const mailOptions = {
-                from: `"Aswaq Forwarder" <${process.env.EMAIL_USER}>`,
+                from: `"${process.env.APP_NAME || 'Aswaq Forwarder'}" <${process.env.EMAIL_USER}>`,
                 to: user.email,
                 subject: isRerejection
                     ? 'Account Approval Revoked - Aswaq Forwarder'
@@ -2014,7 +2034,7 @@ export const rejectClient = async (req, res) => {
                                 If you have any questions, please contact our support team.
                             </p>
                             <p style="color: #999; font-size: 12px;">
-                                © ${new Date().getFullYear()} Aswaq Forwarder. All rights reserved.
+                                © ${new Date().getFullYear()} ${process.env.APP_NAME || "Aswaq Forwarder"}. All rights reserved.
                             </p>
                         </div>
                     </div>
@@ -2137,6 +2157,73 @@ export const resubmitRejectedClient = async (req, res) => {
 
     } catch (error) {
         console.log("Error in resubmitRejectedClient controller:", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const createAdmin = async (req, res) => {
+    try {
+        const { username, password, adminRoles, accessibleBranches, branchId } = req.body;
+
+        if (!username || !password || !adminRoles || !branchId) {
+            return res.status(400).json({ message: "Username, password, roles, and a primary branch are required" });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters" });
+        }
+
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: "Username already exists" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newAdmin = new User({
+            username,
+            password: hashedPassword,
+            adminRoles,
+            role: 'admin',
+            branchId,
+            accessibleBranches: accessibleBranches || [branchId],
+            createdBy: req.user._id
+        });
+
+        await newAdmin.save();
+
+        res.status(201).json({
+            message: "Administrator created successfully",
+            admin: newAdmin
+        });
+
+    } catch (error) {
+        console.log("Error in createAdmin controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const switchBranch = async (req, res) => {
+    try {
+        const { branchId } = req.params;
+        const user = req.user;
+
+        const isSuperAdmin = user.adminRoles?.includes('superadmin');
+        const hasAccess = user.accessibleBranches?.some(b => b._id.toString() === branchId) || user.branchId?._id?.toString() === branchId;
+
+        if (!isSuperAdmin && !hasAccess) {
+            return res.status(403).json({ message: "Access denied to this branch" });
+        }
+
+        await User.findByIdAndUpdate(user._id, { branchId });
+
+        res.status(200).json({
+            message: "Branch switched successfully",
+            branchId
+        });
+    } catch (error) {
+        console.log("Error in switchBranch controller", error.message);
         res.status(500).json({ message: "Internal server error" });
     }
 };

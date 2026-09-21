@@ -120,7 +120,7 @@
     <div>
       <div>
         <p class="company-text">
-          ASWAQ FORWARDER SEA<br />
+          <%= process.env.APP_NAME ? process.env.APP_NAME.toUpperCase() + " SEA" : "ASWAQ FORWARDER SEA" %><br />
           SHIPPING LINES AGENTS CO. L.L.C
         </p>
       </div>

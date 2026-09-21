@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Voyage from "../models/voyage.model.js";
 import UploadedProduct from "../models/uploadedProduct.model.js";
+import Package from "../models/package.model.js";
 import PrintBatch from "../models/printBatch.model.js";
 import PrintedQr from "../models/printedQr.model.js";
 import axios from "axios";
@@ -193,7 +194,8 @@ export const createVoyage = async (req, res) => {
             year,
             branchId,
             expectedDispatchDate,
-            expectedDate
+            expectedDate,
+            airlineId
         } = req.body;
 
 
@@ -228,6 +230,7 @@ export const createVoyage = async (req, res) => {
             voyageNumber,
             year,
             branchId,
+            ...(airlineId && { airlineId }),
             createdBy: req.user.id,
             ...(expectedDispatch && { expectedDispatchDate: expectedDispatch }),
             ...(expectedDeliveryDate && {
@@ -237,6 +240,10 @@ export const createVoyage = async (req, res) => {
         })
 
         await newVoyage.save();
+        
+        if (airlineId) {
+            await newVoyage.populate('airlineId', 'airlineName');
+        }
 
         await logUserActivity({
             req,
@@ -502,7 +509,7 @@ export const getVoyages = async (req, res) => {
         console.log(branchId);
 
 
-        const voyages = await Voyage.find({ status: "pending", branchId: branchId }).sort({ createdAt: -1 });
+        const voyages = await Voyage.find({ status: "pending", branchId: branchId }).populate('airlineId', 'airlineName').sort({ createdAt: -1 });
 
         res.status(200).json(voyages);
 
@@ -518,7 +525,7 @@ export const getCompletedVoyagesByBranch = async (req, res) => {
 
         const { branchId } = req.params;
 
-        const voyages = await Voyage.find({ status: "completed", branchId: branchId }).populate('branchId', 'branchName').sort({ createdAt: -1 });
+        const voyages = await Voyage.find({ status: "completed", branchId: branchId }).populate('branchId', 'branchName').populate('airlineId', 'airlineName').sort({ createdAt: -1 });
 
         if (!voyages.length) {
             return res.status(200).json([]);
@@ -571,6 +578,7 @@ export const getCompletedVoyagesByBranch = async (req, res) => {
             voyageName: voyage.voyageName,
             voyageNumber: voyage.voyageNumber,
             year: voyage.year,
+            airlineId: voyage.airlineId,
             status: voyage.status,
             createdBy: voyage.createdBy,
             createdAt: voyage.createdAt,
@@ -614,7 +622,7 @@ const sendPushNotificationToMultiple = async (expoPushTokens, message) => {
     const messages = expoPushTokens.map(token => ({
         to: token,
         sound: 'default',
-        title: 'Aswaq Forwarder',
+        title: (process.env.APP_NAME || "Aswaq Forwarder"),
         body: message,
         data: { withSome: 'data' },
     }));
@@ -681,13 +689,65 @@ const sendPushNotification = async (expoPushToken, message) => {
 export const exportVoyageData = async (req, res) => {
     try {
         const { voyageId } = req.params;
+        const { eta, landingAirportId, airlineId } = req.body;
 
         const voyage = await Voyage.findById(voyageId);
         if (!voyage) {
             return res.status(404).json({ message: "Voyage not found" });
         }
 
+        if (eta || landingAirportId || airlineId) {
+            if (eta) voyage.eta = eta;
+            if (landingAirportId) voyage.landingAirportId = landingAirportId;
+            if (airlineId) voyage.airlineId = airlineId;
+            await voyage.save();
+        }
+
+        await voyage.populate([
+            { path: 'landingAirportId', select: 'airportName' },
+            { path: 'airlineId', select: 'airlineName' }
+        ]);
+
         const products = await UploadedProduct.find({ voyageId: voyageId });
+
+        const packages = await Package.find({ voyageId: voyageId })
+            .populate({
+                path: "goniId",
+                populate: { path: "companyId", select: "companyCode" }
+            });
+
+        const productPackageMap = {};
+        packages.forEach(pkg => {
+            const goniName = pkg.goniId?.goniName || '';
+            const goniNumber = pkg.goniNumber || null;
+            const companyCode = pkg.goniId?.companyId?.companyCode || '';
+            const totalPieces = pkg.products?.length || 0;
+
+            if (Array.isArray(pkg.products)) {
+                pkg.products.forEach(prodId => {
+                    const idStr = prodId._id ? prodId._id.toString() : prodId.toString();
+                    productPackageMap[idStr] = {
+                        goniName,
+                        goniNumber,
+                        goniCompanyCode: companyCode,
+                        totalPieces,
+                        packageWeight: pkg.packageWeight
+                    };
+                });
+            }
+        });
+
+        const productData = products.map(product => {
+            const pkgInfo = productPackageMap[product._id.toString()] || {};
+            const pObj = product.toObject ? product.toObject() : product;
+            return {
+                ...pObj,
+                goniName: pkgInfo.goniName || "",
+                goniNumber: pkgInfo.goniNumber || null,
+                goniCompanyCode: pkgInfo.goniCompanyCode || "",
+                totalPieces: pkgInfo.totalPieces || null
+            };
+        });
 
         await logUserActivity({
             req,
@@ -704,7 +764,7 @@ export const exportVoyageData = async (req, res) => {
 
         res.status(200).json({
             message: "Voyage data exported successfully",
-            products: products,
+            products: productData,
             voyageInfo: voyage
         });
 
@@ -1069,20 +1129,54 @@ export const getAllVoyageProducts = async (req, res) => {
                 voyageNumber: 1
             });
 
-        const productData = products.map(product => ({
-            _id: product._id,
-            productCode: product.productCode,
-            sequenceNumber: product.sequenceNumber,
-            voyageNumber: product.voyageNumber,
-            trackingNumber: product.trackingNumber,
-            clientCompany: product.clientCompany,
-            weight: product.weight,
-            uploadedDate: product.uploadedDate,
-            uploadedBy: product.uploadedBy,
-            compositeCode: product.compositeCode,
-            image: product.image,
-            status: product.status
-        }));
+        const packages = await Package.find({ voyageId: voyageId })
+            .populate({
+                path: "goniId",
+                populate: { path: "companyId", select: "companyCode" }
+            });
+
+        const productPackageMap = {};
+        packages.forEach(pkg => {
+            const goniName = pkg.goniId?.goniName || '';
+            const goniNumber = pkg.goniNumber || null;
+            const companyCode = pkg.goniId?.companyId?.companyCode || '';
+            const totalPieces = pkg.products?.length || 0;
+
+            if (Array.isArray(pkg.products)) {
+                pkg.products.forEach(prodId => {
+                    const idStr = prodId._id ? prodId._id.toString() : prodId.toString();
+                    productPackageMap[idStr] = {
+                        goniName,
+                        goniNumber,
+                        goniCompanyCode: companyCode,
+                        totalPieces,
+                        packageWeight: pkg.packageWeight
+                    };
+                });
+            }
+        });
+
+        const productData = products.map(product => {
+            const pkgInfo = productPackageMap[product._id.toString()] || {};
+            return {
+                _id: product._id,
+                productCode: product.productCode,
+                sequenceNumber: product.sequenceNumber,
+                voyageNumber: product.voyageNumber,
+                trackingNumber: product.trackingNumber,
+                clientCompany: product.clientCompany,
+                weight: product.weight,
+                uploadedDate: product.uploadedDate,
+                uploadedBy: product.uploadedBy,
+                compositeCode: product.compositeCode,
+                image: product.image,
+                status: product.status,
+                goniName: pkgInfo.goniName || "",
+                goniNumber: pkgInfo.goniNumber || null,
+                goniCompanyCode: pkgInfo.goniCompanyCode || "",
+                totalPieces: pkgInfo.totalPieces || null
+            };
+        });
 
         const totalWeight = Math.round(productData.reduce((total, item) => total + (item.weight || 0), 0) * 100) / 100;
 
@@ -1661,7 +1755,7 @@ export const getAllVoyagesByBranch = async (req, res) => {
         const { branchId } = req.params;
 
 
-        const voyages = await Voyage.find({ branchId: branchId }).sort({ createdAt: -1 });
+        const voyages = await Voyage.find({ branchId: branchId }).populate('airlineId', 'airlineName').sort({ createdAt: -1 });
 
         res.status(200).json(voyages);
 
@@ -1892,7 +1986,9 @@ export const getCompletedCompaniesSummaryByVoyage = async (req, res) => {
         const { voyageId } = req.params;
 
         const voyage = await Voyage.findById(voyageId)
-            .select("voyageName voyageNumber year status");
+            .select("voyageName voyageNumber year status airlineId landingAirportId eta dispatchDate expectedDispatchDate createdAt")
+            .populate("airlineId", "airlineName")
+            .populate("landingAirportId", "airportName");
 
         if (!voyage) {
             return res.status(404).json({ message: "Voyage not found" });
@@ -2047,7 +2143,9 @@ export const getCompanyDetailsByVoyageId = async (req, res) => {
 
 
         const voyage = await Voyage.findById(voyageId)
-            .select("voyageName voyageNumber year status")
+            .select("voyageName voyageNumber year status airlineId landingAirportId eta dispatchDate expectedDispatchDate createdAt")
+            .populate("airlineId", "airlineName")
+            .populate("landingAirportId", "airportName")
             .lean();
 
         if (!voyage) {
@@ -2218,7 +2316,20 @@ export const getVoyageDetailsByBranch = async (req, res) => {
                     branchName: { $ifNull: [{ $arrayElemAt: ["$branchInfo.branchName", 0] }, "Unknown"] }
                 }
             },
-            { $project: { productStats: 0, branchInfo: 0 } },
+            {
+                $lookup: {
+                    from: "airlines",
+                    localField: "airlineId",
+                    foreignField: "_id",
+                    as: "airlineDetails"
+                }
+            },
+            {
+                $addFields: {
+                    airlineId: { $arrayElemAt: ["$airlineDetails", 0] }
+                }
+            },
+            { $project: { productStats: 0, branchInfo: 0, airlineDetails: 0 } },
             { $skip: skip },
             { $limit: limit }
         ]);

@@ -427,3 +427,21 @@ export const createBranchWithAdmins = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const getAllAdmins = async (req, res) => {
+    try {
+        const admins = await User.find({ role: 'admin' })
+            .select('-password')
+            .populate('accessibleBranches', 'branchName')
+            .populate('branchId', 'branchName')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            message: "All administrators fetched successfully",
+            admins
+        });
+    } catch (error) {
+        console.log("Error in getAllAdmins controller", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

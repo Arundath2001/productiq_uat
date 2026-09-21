@@ -11,7 +11,7 @@ const notificationSchema = mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        default: "Aswaq Forwarder",
+        default: (process.env.APP_NAME || "Aswaq Forwarder"),
     },
     message: {
         type: String,

@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import morgan from "morgan";
+import chalk from "chalk";
 import { connectDb } from "./lib/db.js";
 import authRoutes from "./routers/auth.route.js";
 import cookieParser from "cookie-parser";
@@ -21,10 +23,13 @@ import containerCompanyRoutes from "./routers/containerCompany.route.js";
 import seaBatchRoutes from "./routers/seaBatch.route.js";
 import seaBatchAssignRoutes from "./routers/seaBatchAssign.route.js";
 import productTypeRoutes from "./routers/productType.route.js";
+import airlineRoutes from "./routers/airline.route.js";
+import airportRoutes from "./routers/airport.route.js";
 import cors from "cors";
 import path from "path";
 import { app, server, io } from "./lib/socket.js";
 import notificationRoutes from "./routers/notification.route.js";
+import dashboardRoutes from "./routers/dashboard.route.js";
 import { setupVoyageAutomation } from "./controllers/voyage.controller.js";
 import compression from "compression";
 import userActivityRoutes from "./routers/userActivity.route.js";
@@ -39,12 +44,28 @@ const __dirname = path.resolve();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://aswaqforwarder.com",
+  "https://uat.aswaqforwarder.com",
   "https://productiq-web.onrender.com",
   "https://www.aswaqforwarder.com",
   "http://localhost:8081"
 ];
 
 app.use(compression());
+
+const morganFormat = function (tokens, req, res) {
+  const method = tokens.method(req, res);
+  const url = tokens.url(req, res);
+  const status = tokens.status(req, res);
+  const responseTime = tokens['response-time'](req, res) || '-';
+
+  const statusColor = status >= 500 ? chalk.red(status)
+    : status >= 400 ? chalk.yellow(status)
+      : status >= 300 ? chalk.cyan(status)
+        : chalk.green(status);
+
+  return `${chalk.bold.blue(method)} ${chalk.white(url)} ${statusColor} ${chalk.magenta(responseTime + ' ms')}`;
+};
+app.use(morgan(morganFormat));
 
 app.use(express.json())
 app.use(cookieParser());
@@ -82,6 +103,8 @@ app.use("/api/sea-batch", seaBatchRoutes);
 app.use("/api/sea-batch-assignment", seaBatchAssignRoutes);
 app.use("/api/product-type", productTypeRoutes);
 app.use("/api/user-activity", userActivityRoutes);
+app.use("/api/airline", airlineRoutes);
+app.use("/api/airport", airportRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
