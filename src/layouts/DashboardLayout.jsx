@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopNavbar from "../components/TopNavbar";
+import RoleSwitchAnimation from "../components/RoleSwitchAnimation";
 import { Outlet } from "react-router-dom";
 
 const DashboardLayout = () => {
@@ -17,6 +18,7 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
+      <RoleSwitchAnimation />
     </div>
   );
 };

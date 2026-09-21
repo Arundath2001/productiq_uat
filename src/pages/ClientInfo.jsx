@@ -3,8 +3,8 @@ import { useAuthStore } from "../store/useAuthStore.js";
 import { useCompanyStore } from "../store/useCompanyStore";
 import PageHeader from "../components/PageHeader";
 import UserForm from "../components/UserForm.jsx";
-import { FaPen, FaPlus } from "react-icons/fa";
-import { FaTrash } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
+
 import ConfirmAlert from "../components/ConfirmAlert.jsx";
 import { Trash2 } from "lucide-react";
 
@@ -287,9 +287,9 @@ const ClientInfo = () => {
                             className="cursor-pointer text-gray-500 hover:text-red-500 transition-colors ml-2"
                             onClick={() => handleConfirm(data._id)}
                           /> */}
-                          {/* <FaPen
+                          {/* <Pencil size={18} className="text-gray-500 hover:text-blue-500 cursor-pointer transition-colors" 
                             className="cursor-pointer hover:text-blue-600 transition-colors"
-                            color="gray"
+                            
                             onClick={() => handleShowForm(data)}
                           /> */}
                         </>
@@ -332,7 +332,7 @@ const ClientInfo = () => {
         onClick={() => handleShowForm()}
         className="bg-black p-3 bottom-10 right-10 rounded-full fixed cursor-pointer"
       >
-        <FaPlus size={25} color="#FFFFFF" />
+        <FaPlus size={25}  />
       </div> */}
 
       {showUSerForm && (

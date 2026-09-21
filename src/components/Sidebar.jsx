@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
+import ConfirmAlert from "./ConfirmAlert";
+import { createPortal } from "react-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import {
@@ -21,22 +23,27 @@ import {
   PackageCheck,
   Images,
   Activity,
+  BarChart,
 } from "lucide-react";
 
 const Sidebar = ({ isCollapsed }) => {
-  const { authUser, logout } = useAuthStore();
+  const { authUser, logout, activeRole } = useAuthStore();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const isDubaiBranch = authUser?.branchName?.toLowerCase() === "dubai";
 
   const menu = {
     superadmin: [
+      // { path: "analytics", label: "Analytics", icon: BarChart },
       { path: "branches", label: "Branches", icon: LayoutDashboard },
+      { path: "administrators", label: "Administrators", icon: Users },
       { path: "clients", label: "Clients", icon: Building2 },
       { path: "customercode", label: "Customer Code", icon: UserPlus },
       { path: "app-images", label: "App Images", icon: Images },
       { path: "user-activities", label: "User Activity", icon: Activity },
     ],
     air_cargo_admin: [
+      // { path: "analytics", label: "Analytics", icon: BarChart },
       { path: "voyage", label: "Air Voyages", icon: PlaneTakeoff },
       { path: "completed", label: "Completed Voyages", icon: CheckCircle },
       { path: "trackproduct", label: "Track Product", icon: Truck },
@@ -49,8 +56,11 @@ const Sidebar = ({ isCollapsed }) => {
       { path: "customercode", label: "Customer Code", icon: UserPlus },
       // { path: "allbill", label: "Bill of Lading(BOL)", icon: FileText },
       { path: "packages", label: "Packing List", icon: Package },
+      { path: "airlines", label: "Airlines", icon: PlaneTakeoff },
+      { path: "airports", label: "Airports", icon: PlaneTakeoff },
     ],
     ship_cargo_admin: [
+      // { path: "analytics", label: "Analytics", icon: BarChart },
       { path: "sea-voyage", label: "Sea Voyages", icon: ShipIcon },
       {
         path: "completed-sea-voyage",
@@ -68,9 +78,9 @@ const Sidebar = ({ isCollapsed }) => {
     ],
   };
 
-  const userRole = Array.isArray(authUser?.adminRoles)
-    ? authUser.adminRoles[0]
-    : authUser?.adminRoles;
+  const userRole = activeRole || (Array.isArray(authUser?.adminRoles) && authUser.adminRoles.length > 0 
+    ? authUser.adminRoles[0] 
+    : (authUser?.adminRoles || authUser?.role));
 
   return (
     <div
@@ -121,8 +131,8 @@ const Sidebar = ({ isCollapsed }) => {
                   {authUser?.username || "User"}
                 </p>
                 <p className="text-xs text-gray-500 capitalize truncate">
-                  {userRole?.replace(/_/g, " ")}{" "}
-                  {authUser?.branchName ? `| ${authUser.branchName}` : ""}
+                  {/* {userRole?.replace(/_/g, " ")}{" "} */}
+                  {authUser?.branchName || "Main Branch"}
                 </p>
               </div>
             )}
@@ -131,9 +141,9 @@ const Sidebar = ({ isCollapsed }) => {
 
         <button
           type="button"
-          onClick={logout}
+          onClick={() => setIsLogoutModalOpen(true)}
           title={isCollapsed ? "Logout" : ""}
-          className={`flex items-center justify-center cursor-pointer transition-colors rounded-xl text-red-500 hover:bg-red-50 ${
+          className={`flex items-center justify-center cursor-pointer transition-all rounded-xl text-red-600 border border-red-200 bg-white hover:bg-red-50 hover:border-red-300 shadow-sm ${
             isCollapsed 
               ? "w-full py-3" 
               : "w-full py-2.5 font-medium gap-2"
@@ -143,6 +153,23 @@ const Sidebar = ({ isCollapsed }) => {
           {!isCollapsed && <span>Logout</span>}
         </button>
       </div>
+
+      {isLogoutModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <ConfirmAlert
+            alertInfo="Are you sure you want to log out of your account?"
+            handleClose={() => setIsLogoutModalOpen(false)}
+            handleSubmit={() => {
+              setIsLogoutModalOpen(false);
+              logout();
+            }}
+            title="Confirm Logout"
+            confirmText="Log out"
+            cancelText="Cancel"
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -3,18 +3,18 @@ import PageHeader from "../components/PageHeader";
 import { useVoyageStore } from "../store/useVoyageStore.js";
 import CreateVoyage from "../components/CreateVoyage.jsx";
 import { useNavigate } from "react-router-dom";
-import { FaCalendarCheck, FaExclamationCircle, FaTrash } from "react-icons/fa";
+import { FaCalendarCheck, FaExclamationCircle, } from "react-icons/fa";
 import ConfirmAlert from "../components/ConfirmAlert.jsx";
 import images from "../lib/images.js";
 import VoyageStatusForm from "../components/VoyageStatusForm.jsx";
 import { useAuthStore } from "../store/useAuthStore.js";
-import {
+import { Pencil, 
   AlertTriangle,
   Calendar,
   CheckCircle,
   Loader,
   TruckIcon,
-} from "lucide-react";
+ } from "lucide-react";
 
 const CompletedVoyages = () => {
   const {
@@ -190,7 +190,7 @@ const CompletedVoyages = () => {
 
                   <div className="flex items-center mt-1 space-x-3">
                     <div className="flex items-center">
-                      <Calendar size={12} color="gray" className="mr-0.5" />
+                      <Calendar size={12}  className="mr-0.5" />
                       <p className="text-xs text-gray-500 mr-1">
                         Expected Date :
                       </p>
@@ -232,14 +232,14 @@ const CompletedVoyages = () => {
                     className="cursor-pointer"
                     onClick={() => handleShowForm(voyage._id)}
                   >
-                    <FaCalendarCheck color="gray" />
+                    <FaCalendarCheck  />
                   </div>
 
                   <div
                     className="cursor-pointer"
                     onClick={() => handleShowConfirm(voyage._id)}
                   >
-                    <FaTrash color="gray" />
+                    <Trash2 size={18} className="text-gray-500 hover:text-red-500 cursor-pointer transition-colors"   />
                   </div>
                 </div>
               </div>

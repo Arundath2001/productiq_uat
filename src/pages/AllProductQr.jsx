@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PageHead from "../components/PageHeader";
 import { useProductCodeStore } from "../store/useProductCodeStore.js";
-import { FaTrash } from "react-icons/fa";
+
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../components/ConfirmAlert.jsx";
 import { Trash2 } from "lucide-react";

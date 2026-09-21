@@ -7,6 +7,27 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
+    activeRole: null,
+    switchingToRole: null,
+    setActiveRole: (role) => set({ activeRole: role }),
+    setSwitchingToRole: (role) => set({ switchingToRole: role }),
+    
+    switchBranch: async (branchId) => {
+        try {
+            set({ isCheckingAuth: true });
+            const response = await axiosInstance.put(`/switch-branch/${branchId}`);
+            
+            // Re-fetch auth context after branch switch
+            await get().checkAuth();
+            toast.success("Branch switched successfully");
+        } catch (error) {
+            console.error("Error switching branch:", error);
+            toast.error(error.response?.data?.message || "Failed to switch branch");
+        } finally {
+            set({ isCheckingAuth: false });
+        }
+    },
+
     isSigningUp: false,
     isLoggingIn: false,
     isUpdatingProfile: false,
@@ -31,6 +52,13 @@ export const useAuthStore = create((set, get) => ({
 
             set({ authUser: res.data })
 
+            const roles = res.data?.adminRoles?.length > 0 ? res.data.adminRoles : res.data?.role;
+            if (Array.isArray(roles) && roles.length > 0) {
+                set({ activeRole: roles[0] });
+            } else if (typeof roles === 'string') {
+                set({ activeRole: roles });
+            }
+
             get().connectSocket();
 
         } catch (error) {
@@ -47,6 +75,14 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/adminlogin", data);
             set({ authUser: res.data });
+            
+            const roles = res.data?.adminRoles?.length > 0 ? res.data.adminRoles : res.data?.role;
+            if (Array.isArray(roles) && roles.length > 0) {
+                set({ activeRole: roles[0] });
+            } else if (typeof roles === 'string') {
+                set({ activeRole: roles });
+            }
+
             toast.success("Admin login successful");
 
             get().connectSocket();
@@ -65,7 +101,7 @@ export const useAuthStore = create((set, get) => ({
     logout: async () => {
         try {
             await axiosInstance.post("/auth/logout");
-            set({ authUser: null });
+            set({ authUser: null, activeRole: null });
             toast.success("Logged out successfully")
             get().disconnectSocket();
         } catch (error) {
@@ -83,13 +119,15 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
-    getEmployee: async (branchId) => {
+    getEmployee: async (branchId, page = 1, limit = 0, search = "") => {
         try {
-            const res = await axiosInstance.get(`/auth/${branchId}/getEmployee`);
+            const res = await axiosInstance.get(`/auth/${branchId}/getEmployee`, {
+                params: { page, limit, search }
+            });
             set({ usersData: res.data });
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to fetch users data");
-            console.log("Error in getUsersData", error);
+            console.log("Error in getEmployee", error);
         }
     },
 

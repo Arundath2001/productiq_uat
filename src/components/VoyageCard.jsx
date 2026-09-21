@@ -21,7 +21,7 @@ const VoyageCard = ({ voyage, type = "sea", onDelete, onViewClick }) => {
       return {
         voyageNumber: voyage.voyageNumber,
         voyageTitle: `Air Voyage No: ${voyage.voyageNumber}`,
-        voyageSubTitle: null,
+        voyageSubTitle: voyage.airlineId ? `Airline: ${voyage.airlineId.airlineName}` : null,
       };
     }
   };

@@ -151,16 +151,19 @@ const BillOfLadingPDF = ({ billData }) => {
             <View style={styles.logoAddress}>
               <Image src={images.bolLogo} style={styles.logo} />
 
-              <View style={styles.iconRow}>
+              <View style={[styles.iconRow, { paddingHorizontal: 20 }]}>
                 <Text style={styles.whiteText}>
-                  Al Masraf Building Office No. 1701 Baniyas Road Deira Dubai
+                  {billData.branchId?.address || `ASWAQ FORWARDER SEA SHIPPING LINES AGENTS CO. L.L.C		
+SHED NO. S-06 STREET NO.3
+RAS AL KHOR INDUSTRIAL AREA 2
+DUBAI, UAE`}
                 </Text>
               </View>
 
               <View style={styles.iconRow}>
                 <Text style={styles.whiteText}>
-                  Tel: (04) 557 4061, Mob: +97 1521634640, +971 56 339 2867,
-                  {"\n"}
+                  {/* Tel: (04) 557 4061, Mob: +971 56 784 1517,
+                  {"\n"} */}
                   Email: aswaqforwarderdocumentation@aswaqlogistic.com {"\n"}
                   aswaqforwarder@aswaqlogistic.com{"\n"}
                   aswaqforwarderoperation@aswaqlogistic.com

@@ -6,7 +6,7 @@ const SendNotification = () => {
   const { sendNotification, isLoading, error, clearError } = useSendNotification();
 
   const [notificationData, setNotificationData] = useState({
-    title: 'Aswaq Forwarder',
+    title: (import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"),
     message: '',
     sendPushNotification: true
   });
@@ -42,7 +42,7 @@ const SendNotification = () => {
       setSuccessMessage(`Notification sent successfully to ${result.recipientCount} recipients!`);
 
       setNotificationData({
-        title: 'Aswaq Forwarder',
+        title: (import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"),
         message: '',
         sendPushNotification: true
       });
@@ -89,7 +89,7 @@ const SendNotification = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Leave blank to use default: "Aswaq Forwarder"
+            Leave blank to use default: {import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"}
           </p>
         </div>
 

@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import PageHeader from "../components/PageHeader";
-import { FaEdit, FaEllipsisV, FaPen, FaPlus } from "react-icons/fa";
+import { FaEllipsisV, FaPlus } from "react-icons/fa";
+import { Pencil, Trash2 } from "lucide-react";
 import UserForm from "../components/UserForm.jsx";
-import { FaTrash } from "react-icons/fa";
 import ConfirmAlert from "../components/ConfirmAlert.jsx";
+import DataTable from "../components/DataTable";
 
 const EmployeeList = () => {
   const { getEmployee, usersData, deleteUser, authUser } = useAuthStore();
   const [showUserForm, setShowUserForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
-    getEmployee(authUser.branchId);
-  }, [authUser.branchId]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      await getEmployee(authUser.branchId, currentPage, itemsPerPage, searchQuery);
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [authUser.branchId, currentPage, itemsPerPage, searchQuery]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -33,11 +42,6 @@ const EmployeeList = () => {
     setShowUserForm(true);
   };
 
-  const filteredEmployees =
-    usersData?.employees?.filter((employee) =>
-      employee.username.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
-
   const handleConfirm = (userId) => {
     setSelectedUserId(userId);
     setShowConfirm(true);
@@ -51,87 +55,62 @@ const EmployeeList = () => {
     }
   };
 
+  const columns = [
+    { header: "#", render: (_, index) => index + 1 },
+    { header: "Employee Username", accessor: "username" },
+    { header: "Position", accessor: "position" },
+    { header: "Created Date", render: (row) => formatDate(row.createdAt) },
+    { header: "Created By", render: (row) => row.createdBy?.username },
+    {
+      header: "Actions",
+      render: (row) => (
+        <div className="flex gap-3.5">
+          <Trash2
+            className="cursor-pointer text-gray-500 hover:text-red-500 transition-colors"
+            size={18}
+            onClick={() => handleConfirm(row._id)}
+          />
+          <Pencil
+            className="cursor-pointer text-gray-500 hover:text-blue-500 transition-colors"
+            size={18}
+            onClick={() => handleShowForm(row)}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  const topContent = (
+    <PageHeader
+      mainHead="Employee List"
+      subText={`${usersData?.totalEmployees || 0} Employees`}
+      searchQuery={searchQuery}
+      setSearchQuery={(query) => {
+        setSearchQuery(query);
+        setCurrentPage(1); // Reset to page 1 on new search
+      }}
+      showDateFilter={false}
+      placeholder="Search by employee username"
+    />
+  );
+
   return (
     <div>
-      <PageHeader
-        mainHead="Employee List"
-        subText={`${filteredEmployees.length} Employees`}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        showDateFilter={false}
-        placeholder="Search by employee username"
-      />
-
-      <div className="mt-5 overflow-x-auto">
-        <table className="min-w-full table-auto border-separate border-spacing-y-2">
-          <thead className="bg-white shadow-sm">
-            <tr>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-[#000435]">
-                #
-              </th>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-[#000435]">
-                Employee Username
-              </th>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-[#000435]">
-                Position
-              </th>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-[#000435]">
-                Created Date
-              </th>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-[#000435]">
-                Created By
-              </th>
-              <th className="py-3 px-5 text-left text-xs font-semibold text-gray-600"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEmployees.length > 0 ? (
-              filteredEmployees.map((data, index) => (
-                <tr
-                  key={data._id}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm"
-                >
-                  <td className="py-3 px-5 text-sm text-black">{index + 1}</td>
-                  <td className="py-3 px-5 text-sm text-black">
-                    {data.username}
-                  </td>
-                  <td className="py-3 px-5 text-sm text-black">
-                    {data.position}
-                  </td>
-                  <td className="py-3 px-5 text-sm text-black">
-                    {formatDate(data.createdAt)}
-                  </td>
-                  <td className="py-3 px-5 text-sm text-black">
-                    {data.createdBy?.username}
-                  </td>
-                  <td className="py-3 px-5 text-sm text-black relative">
-                    <div className="flex gap-3.5">
-                      <FaTrash
-                        className="cursor-pointer"
-                        color="gray"
-                        onClick={() => handleConfirm(data._id)}
-                      />
-                      <FaPen
-                        className="cursor-pointer "
-                        color="gray"
-                        onClick={() => handleShowForm(data)}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="py-3 px-5 text-sm text-center text-black"
-                >
-                  No data available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="mt-5">
+        <DataTable
+          columns={columns}
+          data={usersData?.employees || []}
+          topContent={topContent}
+          serverSide={true}
+          totalItems={usersData?.totalEmployees || 0}
+          currentPage={currentPage}
+          isLoading={isLoading}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       <div

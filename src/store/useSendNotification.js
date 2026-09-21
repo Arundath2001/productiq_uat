@@ -14,7 +14,7 @@ export const useSendNotification = create((set) => ({
       
       const response = await axiosInstance.post("/notification/sendNoti", {
         message: notificationData.message,
-        title: notificationData.title || "Aswaq Forwarder",
+        title: notificationData.title || (import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"),
         sendPushNotification: notificationData.sendPushNotification !== false,
         category: notificationData.category || "normal",
         type: notificationData.type || "manual",

@@ -9,6 +9,7 @@ import ConfirmAlert from "../components/ConfirmAlert.jsx";
 import { useVoyagesV2 } from "../store/useVoyagesV2.js";
 import EmptyState from "../components/EmptyState.jsx";
 import Pagination from "../components/Pagination.jsx";
+import ExportAirVoyageModal from "../components/ExportAirVoyageModal.jsx";
 
 const VoyageByCompany = () => {
   const { voyageId } = useParams();
@@ -65,7 +66,7 @@ const VoyageByCompany = () => {
     setShowCloseVoyageConfirm(true);
   };
 
-  const confirmExport = async () => {
+  const confirmExport = async (eta, landingAirportId, airlineId) => {
     try {
       const allProducts = await getAllPendingVoyageProducts(voyageId);
 
@@ -75,7 +76,10 @@ const VoyageByCompany = () => {
         return;
       }
 
-      exportVoyageData(allProducts, currentVoyageInfo?.voyageName, voyageId);
+      const exportResult = await exportVoyage(voyageId, { eta, landingAirportId, airlineId });
+      const voyageDetails = exportResult?.voyageInfo || currentVoyageInfo;
+
+      exportVoyageData(allProducts, voyageDetails?.voyageName || currentVoyageInfo?.voyageName, voyageId, voyageDetails);
 
       setShowExportConfirm(false);
     } catch (error) {
@@ -189,10 +193,10 @@ const VoyageByCompany = () => {
 
       {showExportConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-[#B9B9B969] bg-opacity-50 z-50">
-          <ConfirmAlert
-            alertInfo="This will download the Excel file with all voyage data. Do you want to proceed?"
-            handleClose={() => setShowExportConfirm(false)}
-            handleSubmit={confirmExport}
+          <ExportAirVoyageModal
+            onClose={() => setShowExportConfirm(false)}
+            onConfirm={confirmExport}
+            currentVoyageInfo={currentVoyageInfo}
           />
         </div>
       )}

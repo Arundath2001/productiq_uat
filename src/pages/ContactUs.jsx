@@ -162,10 +162,10 @@ const ContactUs = () => {
           <div className="flex items-center">
             <img
               src={images.logo}
-              alt="Aswaq Forwarder Logo"
+              alt={`${import.meta.env.VITE_APP_NAME || 'Aswaq Forwarder'} Logo`}
               className="h-12 w-12 object-contain rounded-full shadow-sm mr-3"
             />
-            <span className="text-xl font-bold text-gray-900">Aswaq Forwarder</span>
+            <span className="text-xl font-bold text-gray-900">{import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"}</span>
           </div>
         </div>
       </nav>
@@ -308,8 +308,8 @@ const ContactUs = () => {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-8">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-gray-500 text-sm">© {currentYear} Aswaq Forwarder. All rights reserved.</p>
+        <div className="border-t border-gray-100 py-6 text-center">
+          <p className="text-gray-500 text-sm">© {currentYear} {import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"}. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -4,14 +4,13 @@ import PageHeader from "../components/PageHeader";
 import {
   FaFilePdf,
   FaTimes,
-  FaTrash,
   FaPlus,
   FaFileDownload,
 } from "react-icons/fa";
 import BillofLading from "./BillofLading";
 import BillOfLadingPDF from "./test";
 import ConfirmAlert from "../components/ConfirmAlert";
-import { Loader2 } from "lucide-react";
+import { Pencil,  Loader2  } from "lucide-react";
 
 const AllBills = () => {
   const {
@@ -175,7 +174,7 @@ const AllBills = () => {
                   className="cursor-pointer"
                   onClick={() => handleDeleteConfirm(bill._id)}
                 >
-                  <FaTrash color="gray" />
+                  <Trash2 size={18} className="text-gray-500 hover:text-red-500 cursor-pointer transition-colors"   />
                 </div>
               </div>
             </div>
@@ -190,7 +189,7 @@ const AllBills = () => {
           onClick={handleShowForm}
           className="bg-black p-3 bottom-10 right-10 rounded-full fixed cursor-pointer"
         >
-          <FaPlus size={25} color="#FFFFFF" />
+          <FaPlus size={25}  />
         </div>
       )}
 

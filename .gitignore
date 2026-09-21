@@ -25,4 +25,4 @@ backend/uploads/
 *.sln
 *.sw?
 
-# .env
+.env

@@ -30,6 +30,10 @@ import ReceivedData from "../pages/ship-cargo/ReceivedData";
 import ProductType from "../pages/ship-cargo/ProductType";
 import AppImages from "../pages/superadmin/AppImages";
 import UserActivities from "../pages/superadmin/UserActivities";
+import AdminManagement from "../pages/superadmin/AdminManagement";
+import AdminDashboard from "../pages/AdminDashboard";
+import Airlines from "../pages/Airlines";
+import Airports from "../pages/Airports";
 
 const router = createBrowserRouter([
   {
@@ -187,6 +191,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "administrators",
+        element: (
+          <ProtectedRoute allowedRoles={["superadmin"]}>
+            <AdminManagement />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "app-images",
         element: (
           <ProtectedRoute allowedRoles={["superadmin"]}>
@@ -199,6 +211,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["superadmin"]}>
             <UserActivities />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "analytics",
+        element: (
+          <ProtectedRoute allowedRoles={["superadmin", "air_cargo_admin", "ship_cargo_admin"]}>
+            <AdminDashboard />
           </ProtectedRoute>
         ),
       },
@@ -271,6 +291,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ContainerCompanies />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "airlines",
+        element: (
+          <ProtectedRoute>
+            <Airlines />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "airports",
+        element: (
+          <ProtectedRoute>
+            <Airports />
           </ProtectedRoute>
         ),
       },

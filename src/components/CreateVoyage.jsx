@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore.js";
 import SearchableDropdown from "./SearchableDropdown .jsx";
 import { useLineStore } from "../store/useLineStore.js";
+import { useAirlineStore } from "../store/useAirlineStore.js";
 
 const CreateVoyage = ({
   setShowCreateVoyage,
@@ -15,10 +16,12 @@ const CreateVoyage = ({
   const { authUser } = useAuthStore();
 
   const { lines, getLines } = useLineStore();
+  const { airlines, getAirlines } = useAirlineStore();
 
   useEffect(() => {
     getLines(authUser.branchId);
-  }, [authUser.branchId, getLines]);
+    getAirlines(authUser.branchId);
+  }, [authUser.branchId, getLines, getAirlines]);
 
   const [voyageData, setVoyageData] = useState({
     voyageName: "",
@@ -28,6 +31,7 @@ const CreateVoyage = ({
     ...(voyageType === "air" && {
       expectedDispatchDate: "",
       expectedDate: "",
+      airlineId: "",
     }),
     ...(voyageType === "sea" && { lineId: "" }),
   });
@@ -39,6 +43,15 @@ const CreateVoyage = ({
 
   const handleLineSelect = (selectedLine) => {
     setVoyageData({ ...voyageData, lineId: selectedLine._id });
+  };
+
+  const airlineOptions = airlines.map((airline) => ({
+    _id: airline._id,
+    name: airline.airlineName,
+  }));
+
+  const handleAirlineSelect = (selectedAirline) => {
+    setVoyageData({ ...voyageData, airlineId: selectedAirline._id });
   };
 
   const validateForm = () => {
@@ -127,6 +140,12 @@ const CreateVoyage = ({
               min={voyageData.expectedDispatchDate}
               value={voyageData.expectedDate}
               onChange={handleChange}
+            />
+            <SearchableDropdown
+              label="Airline Name"
+              placeholder="Airline Name (Optional)"
+              options={airlineOptions}
+              onSelect={handleAirlineSelect}
             />
           </>
         )}

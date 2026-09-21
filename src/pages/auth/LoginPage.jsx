@@ -46,7 +46,7 @@ const LoginPage = () => {
             Get started with
           </p>
           <p className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#6FB5FF] via-[#FFC79C] to-[#C39EF2] text-transparent bg-clip-text">
-            Aswaq Forwader
+            {import.meta.env.VITE_APP_NAME || "Aswaq Forwarder"}
           </p>
           <p className="text-white text-base md:text-lg ">
             Simplify shipping, organize efficiently, and <br /> stay connected

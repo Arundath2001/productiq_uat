@@ -1,4 +1,4 @@
-import { Loader } from "lucide-react";
+import { Loader, AlertTriangle, Trash2, CheckCircle, LogOut } from "lucide-react";
 import React, { useState } from "react";
 
 const ConfirmAlert = ({
@@ -10,6 +10,13 @@ const ConfirmAlert = ({
   datePlaceholder = "Select arrival date",
   onDateChange = null,
   isDeleting,
+  icon: CustomIcon,
+  title = "Are You Sure?",
+  confirmText = "Yes",
+  cancelText = "No",
+  confirmColor,
+  iconBgColor,
+  iconColor,
 }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const [error, setError] = useState("");
@@ -59,16 +66,32 @@ const ConfirmAlert = ({
     return today.toISOString().split("T")[0];
   };
 
+  // Determine intelligent defaults based on the alertInfo text
+  const lowerAlert = (alertInfo || "").toLowerCase();
+  const isDelete = lowerAlert.includes("delete") || lowerAlert.includes("remove");
+  const isComplete = lowerAlert.includes("complete");
+  const isLogout = lowerAlert.includes("log out") || lowerAlert.includes("logout");
+
+  const Icon = CustomIcon || (isDelete ? Trash2 : isComplete ? CheckCircle : isLogout ? LogOut : AlertTriangle);
+  
+  const finalIconBgColor = iconBgColor || (isDelete ? "bg-red-100" : isComplete ? "bg-green-100" : isLogout ? "bg-red-100" : "bg-yellow-100");
+  const finalIconColor = iconColor || (isDelete ? "text-red-600" : isComplete ? "text-green-600" : isLogout ? "text-red-600" : "text-yellow-600");
+  const finalConfirmColor = confirmColor || (isDelete ? "bg-red-500 hover:bg-red-600 shadow-red-200" : isComplete ? "bg-green-500 hover:bg-green-600 shadow-green-200" : "bg-blue-600 hover:bg-blue-700 shadow-blue-200");
+
   return (
-    <div className="w-96 bg-white p-7 rounded-xl">
-      <h1 className="text-base text-center font-semibold mb-4 text-red-700">
-        Are You Sure?
-      </h1>
-      <div className="h-0.5 bg-black mb-1.5" />
-      <p className="text-center mb-4 text-xs">{alertInfo}</p>
+    <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in zoom-in-95 duration-200 p-6 m-4 relative z-[100]">
+      <div className={`w-12 h-12 rounded-full ${finalIconBgColor} flex items-center justify-center mx-auto mb-4`}>
+        <Icon className={`w-6 h-6 ${finalIconColor}`} />
+      </div>
+      <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
+        {title}
+      </h3>
+      <p className="text-center text-gray-600 mb-6 text-sm">
+        {alertInfo}
+      </p>
 
       {showDateInput && (
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
             {dateLabel}
           </label>
@@ -79,35 +102,33 @@ const ConfirmAlert = ({
             placeholder={datePlaceholder}
             min={getTodayString()}
             disabled={isDeleting}
-            className={`w-full px-3 py-2 border rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              error ? "border-red-500" : "border-gray-300"
+            className={`w-full px-3 py-2.5 border rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+              error ? "border-red-500" : "border-gray-200 hover:border-gray-300"
             } ${isDeleting ? "opacity-50 cursor-not-allowed" : ""}`}
           />
           {error && (
-            <p className="text-red-500 text-xs text-center mt-1">{error}</p>
+            <p className="text-red-500 text-xs text-center mt-1.5">{error}</p>
           )}
         </div>
       )}
 
-      <div className="flex justify-center gap-7">
-        <div
+      <div className="flex gap-3">
+        <button
           onClick={isDeleting ? undefined : handleClose}
-          className={`w-20 text-white bg-red-500 px-3.5 py-2 rounded-xl text-center cursor-pointer hover:bg-red-600 transition-colors ${
+          className={`flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer ${
             isDeleting ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          No
-        </div>
-        <div
+          {cancelText}
+        </button>
+        <button
           onClick={isDeleting ? undefined : handleSubmitClick}
-          className={`w-20 text-white bg-green-500 px-3.5 py-2 rounded-xl text-center flex items-center justify-center transition-colors ${
-            isDeleting
-              ? "opacity-50 cursor-not-allowed"
-              : "cursor-pointer hover:bg-green-600"
+          className={`flex-1 px-4 py-2.5 rounded-xl text-white font-medium shadow-sm transition-colors cursor-pointer flex items-center justify-center ${finalConfirmColor} ${
+            isDeleting ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          {isDeleting ? <Loader className="size-4 animate-spin" /> : "Yes"}
-        </div>
+          {isDeleting ? <Loader className="size-4 animate-spin" /> : confirmText}
+        </button>
       </div>
     </div>
   );

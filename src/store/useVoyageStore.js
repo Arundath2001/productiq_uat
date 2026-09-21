@@ -64,7 +64,8 @@ export const useVoyageStore = create((set, get) => ({
             const res = await axiosInstance.post("/voyage/create", data);
 
             set((state) => ({
-                voyages: [...state.voyages, res.data],
+                voyages: [res.data.newVoyage, ...state.voyages],
+                allVoyagesByBranch: [res.data.newVoyage, ...state.allVoyagesByBranch],
             }));
 
             toast.success("Voyage created successfully!");
@@ -220,15 +221,16 @@ export const useVoyageStore = create((set, get) => ({
     },
 
 
-    exportVoyage: async (voyageId) => {
+    exportVoyage: async (voyageId, exportData = {}) => {
         try {
-            await axiosInstance.put(`/voyage/export/${voyageId}`);
+            const response = await axiosInstance.put(`/voyage/export/${voyageId}`, exportData);
 
             toast.success("Voyage data exported successfully!");
-
+            return response.data;
         } catch (error) {
             console.error("Error exporting voyage", error.message);
             toast.error(error.response?.data?.message || "Failed to export voyage");
+            throw error;
         }
     },
 

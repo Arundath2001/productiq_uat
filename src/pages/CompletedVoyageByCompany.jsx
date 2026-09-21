@@ -53,8 +53,9 @@ const CompletedVoyageByCompany = () => {
 
       exportVoyageData(
         allProducts,
-        completedCompaniesSummary.voyageInfo.voyageName,
-        voyageId
+        completedCompaniesSummary.voyageInfo?.voyageName,
+        voyageId,
+        completedCompaniesSummary.voyageInfo
       );
 
       setShowExportConfirm(false);

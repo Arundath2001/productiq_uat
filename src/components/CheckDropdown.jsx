@@ -1,16 +1,20 @@
 import { Check, ChevronDown, X, XCircle } from "lucide-react";
 import React, { useState } from "react";
 
-const CheckDropdown = ({ label, placeholder, onSelectionChange }) => {
+const CheckDropdown = ({ label, placeholder, onSelectionChange, options = ["air_cargo_admin", "ship_cargo_admin"], value = [] }) => {
   const [dropOpen, setDropOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState(value);
 
-  const options = ["air_cargo_admin", "ship_cargo_admin"];
+  // Sync state if value prop changes
+  React.useEffect(() => {
+    setSelectedItems(value);
+  }, [value]);
 
-  const filteredItems = options.filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = options.filter((item) => {
+    const textToSearch = typeof item === 'object' ? (item.label || "") : String(item);
+    return textToSearch.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const handleSelectItems = (item) => {
     let updatedItems;
@@ -49,18 +53,24 @@ const CheckDropdown = ({ label, placeholder, onSelectionChange }) => {
         >
           <div className="flex gap-1">
             {selectedItems.length > 0 ? (
-              selectedItems.map((item) => (
-                <div key={item}>
-                  <span className="flex items-center gap-1 bg-blue-100 text-blue-600 px-1 py-0.5 rounded-md text-sm">
-                    {item}
-                    <X
-                      className="cursor-pointer hover:text-blue-400"
-                      size={12}
-                      onClick={(e) => removeItems(e, item)}
-                    />
-                  </span>
-                </div>
-              ))
+              <div className="flex flex-wrap gap-1">
+                {selectedItems.map((item) => {
+                  const displayText = typeof item === 'object' ? item.label : item;
+                  const itemValue = typeof item === 'object' ? item.value : item;
+                  return (
+                    <div key={itemValue}>
+                      <span className="flex items-center gap-1 bg-blue-100 text-blue-600 px-1 py-0.5 rounded-md text-sm">
+                        {displayText}
+                        <X
+                          className="cursor-pointer hover:text-blue-400"
+                          size={12}
+                          onClick={(e) => removeItems(e, item)}
+                        />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <span className="text-gray-400">{placeholder}</span>
             )}
@@ -88,9 +98,23 @@ const CheckDropdown = ({ label, placeholder, onSelectionChange }) => {
               )}
             </div>
             <div className="max-h-32 overflow-y-auto">
+              {filteredItems.length > 0 && (
+                <div
+                  onClick={() => {
+                    const isAllSelected = selectedItems.length === options.length;
+                    const newSelection = isAllSelected ? [] : [...options];
+                    setSelectedItems(newSelection);
+                    if (onSelectionChange) onSelectionChange(newSelection);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 font-medium text-blue-600 text-sm flex justify-between"
+                >
+                  <span>{selectedItems.length === options.length ? "Deselect All" : "Select All"}</span>
+                </div>
+              )}
               {filteredItems.length > 0 ? (
                 filteredItems.map((item, index) => {
                   const selected = isItemSelected(item);
+                  const displayText = typeof item === 'object' ? item.label : item;
                   return (
                     <div
                       key={index}
@@ -98,7 +122,7 @@ const CheckDropdown = ({ label, placeholder, onSelectionChange }) => {
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     >
                       <div className="flex justify-between items-center">
-                        <span>{item}</span>
+                        <span>{displayText}</span>
                         {selected && (
                           <div className="w-4 h-4 bg-blue-400 rounded-sm flex items-center justify-center">
                             <Check

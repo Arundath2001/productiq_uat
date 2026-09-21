@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useVoyageStore } from "../store/useVoyageStore.js";
 import { useParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader.jsx";
-import { FaEdit, FaEllipsisV, FaPlus, FaTrash } from "react-icons/fa";
+import { FaEllipsisV, FaPlus, } from "react-icons/fa";
 import ConfirmAlert from "../components/ConfirmAlert.jsx";
+
+import { Pencil, Trash2 } from "lucide-react";
 
 const AllCodeDetails = () => {
   const { getProductByCode, productByCode, deleteVoyageData } =
@@ -156,7 +158,7 @@ const AllCodeDetails = () => {
                         className="cursor-pointer"
                         onClick={() => handleShowConfirm(data._id)}
                       >
-                        <FaTrash color="gray" />
+                        <Trash2 size={18} className="text-gray-500 hover:text-red-500 cursor-pointer transition-colors"   />
                       </div>
                     </td> */}
                   </tr>
